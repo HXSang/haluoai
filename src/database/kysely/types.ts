@@ -1,0 +1,297 @@
+import type { ColumnType } from "kysely";
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+
+import type { PermissionNameType, AuthType, JobOptionType, JobStatus, JobOpenToDiscuss, CategoryType, InteviewStatus, CandidateResumeType, ClientOptionType, JobType, ApplicationStatus, RewardUnitType, SalaryType } from "./enums";
+
+export type Application = {
+    id: Generated<number>;
+    jobId: number | null;
+    status: ApplicationStatus;
+    note: string | null;
+    linkedinCandidate: string | null;
+    locationCandidate: string | null;
+    minExpectedSalary: number | null;
+    maxExpectedSalary: number | null;
+    personalVideoUrl: string | null;
+    currency: string | null;
+    summary: string | null;
+    salaryType: SalaryType | null;
+    noticePeriod: string | null;
+    reasonRejected: string | null;
+    actualSalary: number | null;
+    actualCurrency: string | null;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type ApplicationResume = {
+    id: Generated<number>;
+    applicationId: number;
+    resumeId: number;
+};
+export type Candidate = {
+    id: Generated<number>;
+    name: string;
+    phone: string;
+    email: string;
+    note: string | null;
+    dialCode: string | null;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type CandidateTag = {
+    id: Generated<number>;
+    candidateId: number | null;
+    tagId: number | null;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type Category = {
+    id: Generated<number>;
+    name: string;
+    type: CategoryType;
+    metadata: unknown | null;
+    isActive: Generated<boolean>;
+    isVisible: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type City = {
+    id: Generated<number>;
+    name: string;
+    country: string;
+    code: string;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type Client = {
+    id: Generated<number>;
+    name: string;
+    logoUrl: Generated<string | null>;
+    country: string | null;
+    city: string | null;
+    address: string | null;
+    industryId: number | null;
+    size: number | null;
+    budget: number | null;
+    contactName: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+    contactUrl: string | null;
+    websiteUrl: string | null;
+    detailUrl: string | null;
+    overview: string | null;
+    insight: string | null;
+    benefit: string | null;
+    statusId: number | null;
+    creatorId: number;
+    contractSigned: Generated<boolean>;
+    contractFile: string | null;
+    timestamp: Generated<Timestamp>;
+    isActive: Generated<boolean>;
+    dialCode: string | null;
+    note: string | null;
+};
+export type ClientJob = {
+    id: Generated<number>;
+    title: string;
+    clientId: number | null;
+    type: JobType | null;
+    salaryMin: number | null;
+    salaryMax: number | null;
+    reward: number | null;
+    rewardUnit: RewardUnitType | null;
+    currency: string | null;
+    experience: string | null;
+    expiredAt: Timestamp | null;
+    location: string | null;
+    description: string | null;
+    insight: string | null;
+    status: JobStatus;
+    creatorId: number | null;
+    priorityId: number | null;
+    interval: string | null;
+    overview: string | null;
+    salaryType: SalaryType | null;
+    requirement: string | null;
+    timestamp: Generated<Timestamp>;
+    isActive: Generated<boolean>;
+    interviewProcess: string | null;
+    openToDiscuss: Generated<JobOpenToDiscuss>;
+    workLocation: string | null;
+    headCount: number | null;
+};
+export type ClientOption = {
+    id: Generated<number>;
+    name: string;
+    type: ClientOptionType;
+    timestamp: Generated<Timestamp>;
+    isActive: Generated<boolean>;
+};
+export type JobCategory = {
+    id: Generated<number>;
+    jobId: number | null;
+    categoryId: number | null;
+    timestamp: Generated<Timestamp>;
+    isActive: Generated<boolean>;
+};
+export type JobOption = {
+    id: Generated<number>;
+    name: string;
+    type: JobOptionType;
+    metadata: unknown | null;
+    priorityOrder: number | null;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type JobTag = {
+    id: Generated<number>;
+    jobId: number;
+    tagId: number;
+    timestamp: Generated<Timestamp>;
+    isActive: Generated<boolean>;
+};
+export type JobWorking = {
+    id: Generated<number>;
+    jobId: number;
+    workingId: number;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type Permission = {
+    id: Generated<number>;
+    name: PermissionNameType;
+    description: string | null;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type PhoneCountry = {
+    id: Generated<number>;
+    name: string;
+    code: string;
+    unicode: string;
+    dialCode: string | null;
+    image: string | null;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type RefreshToken = {
+    id: Generated<number>;
+    userId: number;
+    value: string;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type Resume = {
+    id: Generated<number>;
+    candidateId: number | null;
+    originalResume: string;
+    maskedResume: string | null;
+    recruiterId: number | null;
+    name: string | null;
+    metadata: unknown | null;
+    content: string | null;
+    previewUrl: string | null;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type Role = {
+    id: Generated<number>;
+    name: string;
+    description: string | null;
+    isArchived: Generated<boolean>;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type RolePermission = {
+    id: Generated<number>;
+    roleId: number;
+    permissionId: number;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type Tag = {
+    id: Generated<number>;
+    name: string;
+    isVisible: Generated<boolean>;
+    isActive: Generated<boolean>;
+    timestamp: Generated<Timestamp>;
+};
+export type User = {
+    id: Generated<number>;
+    name: string;
+    avatar: string | null;
+    email: string;
+    password: string | null;
+    phone: string | null;
+    dialCode: string | null;
+    authType: AuthType;
+    googleId: string | null;
+    socialUrl: string | null;
+    groupUrl: string | null;
+    bank: string | null;
+    bankAccount: string | null;
+    identificationNumber: string | null;
+    isArchived: Generated<boolean>;
+    isNotification: Generated<boolean>;
+    lastSignIn: Generated<Timestamp>;
+    creatorId: number | null;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type UserCategory = {
+    id: Generated<number>;
+    userId: number;
+    categoryId: number;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type UserRole = {
+    id: Generated<number>;
+    userId: number;
+    roleId: number;
+    isActive: Generated<boolean>;
+    createdAt: Generated<Timestamp>;
+    updatedAt: Generated<Timestamp>;
+};
+export type DB = {
+    applicationResumes: ApplicationResume;
+    applications: Application;
+    candidates: Candidate;
+    candidatesTags: CandidateTag;
+    categories: Category;
+    cities: City;
+    clientOptions: ClientOption;
+    clients: Client;
+    jobWorkings: JobWorking;
+    jobs: ClientJob;
+    jobsCategories: JobCategory;
+    jobsOptions: JobOption;
+    jobsTags: JobTag;
+    permissions: Permission;
+    phoneCountries: PhoneCountry;
+    refreshTokens: RefreshToken;
+    resumes: Resume;
+    rolePermissions: RolePermission;
+    roles: Role;
+    tags: Tag;
+    userCategories: UserCategory;
+    userRoles: UserRole;
+    users: User;
+};

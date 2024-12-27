@@ -1,0 +1,59 @@
+version: "3.3"
+
+services:
+  app:
+    container_name: base-server
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    working_dir: /home/node/app
+#    command: [ "npm", "run", "start:dev" ]
+    restart: unless-stopped
+    tty: true
+    env_file:
+      - .env
+    volumes:
+      - ./:/home/node/app
+    ports:
+      - ${PORT}:${PORT}
+    networks:
+      - base-network
+    depends_on:
+      - redis
+
+    # If you want to use local database, use this code
+  postgres:
+    container_name: vivivi-postgres
+    image: postgres:13.5
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:5432
+    networks:
+      - base-network
+
+  # redis:
+  #   container_name: base-redis
+  #   image: redis/redis-stack-server:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - ${REDIS_PORT}:${REDIS_PORT}
+  #   volumes:
+  #     - redis:/data
+  #   networks:
+  #     - base-network
+
+volumes:
+  # redis:
+  #   driver: local
+  postgres:
+    driver: local # local, overlay
+
+networks:
+  base-network:
+    driver: bridge

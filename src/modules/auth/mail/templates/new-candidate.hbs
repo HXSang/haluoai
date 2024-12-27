@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #000;
+        }
+
+        .item {
+            color: #000;
+        }
+
+        .item+.item {
+            margin-top: 16px;
+        }
+
+        .title {
+            font-weight: 700;
+            font-size: 20px;
+            text-transform: uppercase;
+        }
+
+        .greeting {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message {
+            font-weight: 400;
+            font-size: 14px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: 600;
+            background-color: #6E3FF3;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .important {
+            padding-left: 20px;
+            margin: 0px;
+        }
+
+        .important p {
+            font-weight: 600;
+            font-size: 14px;
+            margin: 0 0 8px -20px;
+        }
+
+        .important li {
+            font-weight: 400;
+            font-size: 14px;
+        }
+
+        .closing {
+            font-weight: 400;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="title item">
+        {{clientName}} - {{jobTitle}} - {{candidateName}}
+    </div>
+    <div class="greeting item">
+        Dear admin,
+    </div>
+    <div class="message item">
+        A new candidate has been submitted by a recruiter. Below are the details of the submission:
+    </div>
+    <ul class="important item">
+        <li>Candidate ID: {{candidateId}}</li>
+        <li>Candidate Name: {{candidateName}}</li>
+        <li>Position Applied For: {{jobTitle}}</li>
+        <li>Client: {{clientName}}</li>
+        <li>Date of Submission: {{submissionDate}}</li>
+        <li>Recruiter Name: {{recruiterName}}</li>
+        <li>Contact Channel: {{contactChannel}}</li>
+        <li>Group chat: {{groupChat}}</li>
+    </ul>
+    <a href={{link}} class="button item">Check new candidate</a>
+    <div class="message item">
+        Please review the submission at your earliest convenience. If further details are required, feel free to reach
+        out.
+    </div>
+    <div class="message item">
+        Thank you for your prompt attention.
+    </div>
+    <div class="closing item">
+        Best regards,
+        <br />
+        KitesHR Support Team
+    </div>
+</body>
+
+</html>
