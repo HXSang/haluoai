@@ -9,19 +9,19 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package.json and package-lock.json
-COPY --chown=node:node package*.json ./
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Bundle app source
-COPY --chown=node:node . .
+COPY . .
 
 # Run Prisma generate
 RUN npx prisma generate
 
 # Switch to non-root user
-USER node
+# USER node
 
 # Set the entrypoint
 # ENTRYPOINT [ "npm", "run", "start:dev" ]
