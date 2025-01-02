@@ -37,20 +37,20 @@ services:
     networks:
       - base-network
 
-  # redis:
-  #   container_name: base-redis
-  #   image: redis/redis-stack-server:latest
-  #   restart: unless-stopped
-  #   ports:
-  #     - ${REDIS_PORT}:${REDIS_PORT}
-  #   volumes:
-  #     - redis:/data
-  #   networks:
-  #     - base-network
+  redis:
+    container_name: base-redis
+    image: redis/redis-stack-server:latest
+    restart: unless-stopped
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    volumes:
+      - redis:/data
+    networks:
+      - base-network
 
 volumes:
-  # redis:
-  #   driver: local
+  redis:
+    driver: local
   postgres:
     driver: local # local, overlay
 
