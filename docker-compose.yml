@@ -20,6 +20,7 @@ services:
       - base-network
     depends_on:
       - redis
+      - postgres
 
     # If you want to use local database, use this code
   postgres:
