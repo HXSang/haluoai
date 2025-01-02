@@ -7,7 +7,7 @@ services:
       context: ./
       dockerfile: ./Dockerfile
     working_dir: /home/node/app
-#    command: [ "npm", "run", "start:dev" ]
+    command: [ "npm", "run", "start:dev" ]
     restart: unless-stopped
     tty: true
     env_file:
