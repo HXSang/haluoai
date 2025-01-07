@@ -19,7 +19,7 @@ export type Pagination<T> = {
     total: number;
     page: number;
     limit: number;
-    total_pages: number;
+    totalPages: number;
   };
 };
 
@@ -59,7 +59,7 @@ export class BaseRepository<T> extends PrismaService {
         items: await this.findManyRandom(take, rest),
         meta: {
           total: 0,
-          total_pages: 0,
+          totalPages: 0,
           page: 0,
           limit: 0,
         },
@@ -81,7 +81,7 @@ export class BaseRepository<T> extends PrismaService {
       items: data,
       meta: {
         total,
-        total_pages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / limit),
         page: Number(page),
         limit: Number(limit),
       },
@@ -166,5 +166,37 @@ export class BaseRepository<T> extends PrismaService {
       });
     }
     return this.create(data);
+  }
+
+
+  async groupByPagination<T extends Record<string, any>>(
+    query: groupByQuery & { page: number; limit: number }
+  ): Promise<Pagination<T>> {
+    const { page, limit, ...rest } = query;
+    const skip = (page - 1) * limit;
+    const take = Number(limit);
+
+    // Get total count of unique groups
+    const totalGroups = await this.prismaService[this.model as keyof PrismaClient].groupBy({
+      ...rest,
+      _count: true,
+    });
+
+    // Get paginated groups
+    const groups = await this.prismaService[this.model as keyof PrismaClient].groupBy({
+      ...rest,
+      skip,
+      take,
+    });
+
+    return {
+      items: groups as T[],
+      meta: {
+        total: totalGroups.length,
+        totalPages: Math.ceil(totalGroups.length / limit),
+        page: Number(page),
+        limit: Number(limit),
+      },
+    };
   }
 }
