@@ -58,7 +58,7 @@ import { ResponseInterceptor } from '@n-interceptors/response.interceptor';
       global: true,
       middleware: { mount: true },
     }),
-    AuthModule, UserModule
+    AuthModule, UserModule,
   ],
   controllers: [AppController],
   providers: [

@@ -11,6 +11,14 @@ import { User } from '@prisma/client';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // get my information
+  @Get('me')
+  @AuthClaims()
+  getMe(@GetUser() user: User) {
+    console.log(user);
+    return this.userService.findOne(user?.id);
+  }
+
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
@@ -36,10 +44,4 @@ export class UserController {
     return this.userService.remove(+id);
   }
 
-  // get my credit
-  @Get('credit')
-  @AuthClaims()
-  getCredit(@GetUser() user: User) {
-    return this.userService.getCredit(user?.id);
-  }
 }

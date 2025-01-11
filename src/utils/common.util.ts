@@ -62,3 +62,37 @@ export function uuidv4(length: number = 32) {
   return uuid.slice(0, length);
 }
 export const withTrashedCondition = { isActive: false };
+
+
+
+export function getDateAgo(days: number) {
+  const date = new Date();
+  const startDate = new Date(date.setDate(date.getDate() - days));
+  return startDate;
+}
+
+// remove keys from object
+export function removeKeys(obj: any, keys: string[]) {
+  // return obj key and value without keys ignore case
+  return Object.fromEntries(Object.entries(obj).filter(([key]) => !keys.includes(key)));
+}
+
+
+export function isValidDateRange(startDate: string, endDate: string): boolean {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const now = new Date();
+  
+  return start <= end;
+}
+
+// random string
+export function randomString(length: number = 32) {
+  return Math.random().toString(36).substring(2, length + 2);
+}
+
+
+
+export function collectAcceptKeys(obj: any, keys: string[]) {
+  return Object.fromEntries(Object.entries(obj).filter(([key]) => keys.includes(key)));
+}

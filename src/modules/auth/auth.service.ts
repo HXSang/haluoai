@@ -33,10 +33,10 @@ export class AuthService {
   }
 
   async login({
-    authType, email, password, googleId,
+    email, password,
   }: LoginDto) {
     // User authentication
-    const user = await this.getAuthenticatedUser(email, authType, password, googleId);
+    const user = await this.getAuthenticatedUser(email, AuthType.EMAIL, password);
 
     if (user.deletedAt) {
       throw new BaseException(Errors.AUTH.USER_ARCHIVED);
@@ -62,10 +62,6 @@ export class AuthService {
 
   async loginGoogle(loginGoogleDto: LoginGoogleDto) {
     let user = await this.UserRepository.findByEmailWithAuthType(loginGoogleDto.email, AuthType.GOOGLE);
-
-    if (user?.deletedAt) {
-      throw new BaseException(Errors.AUTH.USER_ARCHIVED);
-    }
 
     if (!user) {
       await this.UserRepository.create({

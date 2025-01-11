@@ -1,8 +1,8 @@
-import { KitesPermission, KitesPermissionType } from './permissions/kites';
+import { AppPermission, AppPermissionType } from './permissions/app';
 
 export const Permission = {
-  ...KitesPermission,
+  ...AppPermission,
 };
 
 export type PermissionType =
-    | KitesPermissionType;
+    | AppPermissionType;

@@ -1,3 +1,11 @@
+# Quick Start development
+
+```bash
+yarn
+yarn dev
+```
+
+<!-- START DETAILS -->
 
 # NestJS Docker Setup Guide
 

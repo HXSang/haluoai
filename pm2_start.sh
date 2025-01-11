@@ -1,9 +1,11 @@
+app_name="nestjs-app"
+
 echo "Removing existing PM2 process..."
-pm2 delete nestjs-app || true
+pm2 delete $app_name || true
 
 # Start the application with PM2
 echo "Starting the application with PM2..."
-pm2 start yarn --name "nestjs-app" -- dev
+pm2 start yarn --name $app_name -- dev
 
 # Display PM2 status
 pm2 status
@@ -15,3 +17,5 @@ pm2 save
 sudo pm2 startup
 
 echo "Application has been started with PM2!" 
+
+pm2 log $app_name

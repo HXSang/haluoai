@@ -10,19 +10,19 @@ export class LoginDto {
   @ApiProperty({ example: 'admin@gmail.com' })
     email: string;
 
-  @ValidateIf((dto: LoginDto) => dto.authType === AuthType.EMAIL)
+  // @ValidateIf((dto: LoginDto) => dto.authType === AuthType.EMAIL)
   @IsNotEmpty({ message: 'Password is required for EMAIL authentication' })
   @IsString()
   @ApiProperty({ example: '123456', required: false })
     password?: string;
 
-  @ValidateIf((dto: LoginDto) => dto.authType === AuthType.GOOGLE)
-  @IsNotEmpty({ message: 'Google ID is required for GOOGLE authentication' })
-  @IsString()
-  @ApiProperty({ example: 'google-12345', required: false })
-    googleId?: string;
+  // @ValidateIf((dto: LoginDto) => dto.authType === AuthType.GOOGLE)
+  // @IsNotEmpty({ message: 'Google ID is required for GOOGLE authentication' })
+  // @IsString()
+  // @ApiProperty({ example: 'google-12345', required: false })
+  //   googleId?: string;
 
-  @ApiProperty({ enum: AuthType })
-  @IsString()
-    authType: AuthType;
+  // @ApiProperty({ enum: AuthType })
+  // @IsString()
+  //   authType: AuthType;
 }

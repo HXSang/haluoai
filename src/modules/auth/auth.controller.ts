@@ -3,8 +3,10 @@ import {
   Get,
   Req,
   Query,
+  Res,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ClearCookieInterceptor, CookieInterceptor } from '@n-interceptors';
 import { Request } from 'express';
 import { AuthToken } from '@n-decorators';
@@ -17,7 +19,8 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { LoginDto } from './dtos/login.dto';
 import { AuthService } from './auth.service';
-import { LoginGoogleDto } from './dtos/login-google.dto';
+import { AuthGoogleService } from './auth.google.service';
+import { Response } from 'express';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -26,17 +29,13 @@ export class AuthController {
     private readonly authService: AuthService,
     private jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly authGoogleService: AuthGoogleService,
   ) { }
 
   @Post('login')
   @UseInterceptors(CookieInterceptor)
   async logIn(@Body() loginData: LoginDto) {
     return this.authService.login(loginData);
-  }
-
-  @Post('login-google')
-  async loginGoogle(@Body() loginGoogleDto: LoginGoogleDto) {
-    return this.authService.loginGoogle(loginGoogleDto);
   }
 
   @Get('refresh-token')
@@ -74,5 +73,20 @@ export class AuthController {
     }
 
     return this.authService.resetPassword(data.userId, resetPasswordDto.password);
+  }
+
+  @Get('google/sign-in')
+  @ApiOperation({ summary: 'Get Google OAuth URL, remember config google oauth' })
+  getGoogleAuthUrlLogin() {
+    return {
+      url: this.authGoogleService.generateAuthUrl()
+    };
+  }
+
+  @Get('google/redirect')
+  @ApiOperation({ summary: 'Handle Google OAuth redirect to generate access token then redirect to frontend, remember config frontend url in .env' })
+  async handleOAuth(@Query('code') code: string, @Res() response: Response) {
+    const { redirectUrl } = await this.authGoogleService.exchangeCodeForTokens(code);
+    return response.redirect(redirectUrl);
   }
 }

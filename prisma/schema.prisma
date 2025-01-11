@@ -27,11 +27,12 @@ model User {
   email      String    @map("email")
   avatar     String?   @map("avatar")
   password   String?   @map("password")
-  credits    Int?      @default(0) @map("credits")
   roleId     Int?      @map("role_id")
   googleId   String?   @map("google_id")
   authType   AuthType? @map("auth_type")
   lastSignIn DateTime? @map("last_sign_in")
+
+  // timestamps
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime? @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
@@ -113,32 +114,4 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-
-// // youtube channel entity
-// model YoutubeChannel {
-//   id        Int       @id @default(autoincrement())
-//   name      String    @map("name")
-//   url       String    @map("url")
-//   accessToken String @map("access_token") 
-//   refreshToken String @map("refresh_token")
-//   channelId String @map("channel_id")
-//   userId Int @map("user_id")
-//   refreshTokenExpiry DateTime @map("refresh_token_expiry")
-//   accessTokenExpiry DateTime @map("access_token_expiry")
-//   createdAt DateTime  @default(now()) @map("created_at")
-//   updatedAt DateTime? @updatedAt @map("updated_at")
-//   deletedAt DateTime? @map("deleted_at")
-// }
-
-// //youtube channel analytics 
-// model YoutubeChannelAnalytics { 
-//   id Int @id @default(autoincrement())
-//   channelId String @map("channel_id")
-//   userId Int @map("user_id")
-//   analyticsData Json @map("analytics_data")
-//   date DateTime @map("date")
-//   createdAt DateTime  @default(now()) @map("created_at")
-//   updatedAt DateTime? @updatedAt @map("updated_at")
-//   deletedAt DateTime? @map("deleted_at")
-// }
 

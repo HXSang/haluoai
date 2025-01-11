@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client/extension';
 export type findFirstQuery = Prisma.UserFindFirstArgs;
 export type findUniqueQuery = Prisma.UserFindUniqueArgs;
 export type countQuery = Prisma.UserCountArgs;
-export type findManyQuery = Prisma.UserFindManyArgs 
+export type findManyQuery = Prisma.UserFindManyArgs;
 export type updateQuery = Prisma.UserUpdateArgs;
 export type deleteQuery = Prisma.UserDeleteArgs;
 export type groupByQuery = Prisma.UserGroupByArgs;
@@ -23,7 +23,7 @@ export type Pagination<T> = {
   };
 };
 
-export class BaseRepository<T> extends PrismaService {
+export class PrismaRepository<T> extends PrismaService {
   constructor(
     protected readonly prismaService: PrismaService,
     private model: Prisma.ModelName,

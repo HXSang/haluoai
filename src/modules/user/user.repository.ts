@@ -1,11 +1,11 @@
 // user repository
 import { PrismaService } from '@n-database/prisma/prisma.service';
-import { BaseRepository } from '@n-utils/base.repository';
+import { PrismaRepository } from '@n-database/prisma/prisma.repository';
 import { Injectable } from '@nestjs/common';
 import { AuthType, User } from '@prisma/client';
 
 @Injectable()
-export class UserRepository extends BaseRepository<User> {
+export class UserRepository extends PrismaRepository<User> {
   constructor(private readonly prisma: PrismaService) {
     super(prisma, 'User');
   }

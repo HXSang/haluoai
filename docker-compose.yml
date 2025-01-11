@@ -24,7 +24,7 @@ services:
 
     # If you want to use local database, use this code
   postgres:
-    container_name: vivivi-postgres
+    container_name: base-postgres
     image: postgres:13.5
     restart: unless-stopped
     environment:

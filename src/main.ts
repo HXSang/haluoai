@@ -18,12 +18,13 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
 
   app.use(cookieParser());
+  // handle cors and trust origin
   app.enableCors({
     credentials: true,
     origin: [
       'http://localhost:3000',
-      'https://kiteshr.com',
-      'https://admin.kiteshr.com',
+      // all origin
+      // '*',
     ],
   });
 
@@ -65,8 +66,8 @@ async function bootstrap() {
 
 function setupOpenApi(app: INestApplication) {
   const options = new DocumentBuilder()
-    .setTitle('KITES HR API')
-    .setDescription('NestJS application for Kites HR Backend')
+    .setTitle('NOS API')
+    .setDescription('NestJS application for NOS Backend')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
