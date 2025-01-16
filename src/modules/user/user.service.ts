@@ -25,12 +25,4 @@ export class UserService {
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
-
-  getCredit(userId: number) { 
-    return this.userRepository.findById(userId,{
-      select: {
-        credits: true
-      }
-    });
-  }
 }

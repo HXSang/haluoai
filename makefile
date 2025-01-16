@@ -21,13 +21,13 @@ seed:
 	npx prisma db seed
 
 connect:
-	docker exec -it vivivi-app-server bash
+	docker exec -it base-app-server bash
 
 dev:
 	npm run start:dev
 
 log:
-	docker logs -f vivivi-app-server -t --tail 10
+	docker logs -f base-app-server -t --tail 10
 
 pm2-log:
-	pm2 logs --raw --name vivivi-app-server --lines 10
+	pm2 logs --raw --name base-app-server --lines 10
