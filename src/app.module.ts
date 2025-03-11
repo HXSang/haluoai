@@ -14,7 +14,7 @@ import emailConfig from '@n-configs/env/email.config';
 // import { RedisOptions } from '@n-configs/module-config/redis.options';
 import { JwtOptions } from '@n-configs/module-config/jwt.options';
 import { LoggerOptions } from '@n-configs/module-config/logger.options';
-// import { ScheduleModule } from '@nestjs/schedule';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
@@ -23,6 +23,9 @@ import { PrismaService } from '@n-database/prisma/prisma.service';
 import validate from '@n-configs/env/env.validation';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseInterceptor } from '@n-interceptors/response.interceptor';
+import { AccountModule } from './modules/account/account.module';
+import { VideoResultModule } from './modules/video-result/video-result.module';
+import { JobQueueModule } from './modules/job-queue/job-queue.module';
 
 @Module({
   imports: [
@@ -37,7 +40,7 @@ import { ResponseInterceptor } from '@n-interceptors/response.interceptor';
       ],
       validate,
     }),
-    // ScheduleModule.forRoot(),
+    ScheduleModule.forRoot(),
     // CacheModule.registerAsync(RedisOptions),
     JwtModule.registerAsync(JwtOptions),
     LoggerModule.forRoot(LoggerOptions),
@@ -58,7 +61,7 @@ import { ResponseInterceptor } from '@n-interceptors/response.interceptor';
       global: true,
       middleware: { mount: true },
     }),
-    AuthModule, UserModule,
+    AuthModule, UserModule, AccountModule, VideoResultModule, JobQueueModule,
   ],
   controllers: [AppController],
   providers: [
