@@ -12,7 +12,7 @@ export class HailuoService {
 
   private async initializeBrowser(account: Account, options: { headless?: boolean } = {}) {
     const browser = await puppeteer.launch({
-      headless: options.headless ?? true,
+      headless: options.headless ?? false,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
