@@ -2,8 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { JobQueueService } from './job-queue.service';
 import { CreateJobQueueDto } from './dto/create-job-queue.dto';
 import { UpdateJobQueueDto } from './dto/update-job-queue.dto';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('job-queue')
+@ApiTags('job-queue')
 export class JobQueueController {
   constructor(private readonly jobQueueService: JobQueueService) {}
 

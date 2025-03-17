@@ -23,6 +23,8 @@ async function bootstrap() {
     credentials: true,
     origin: [
       'http://localhost:3000',
+      'http://localhost:5173',
+      'https://hailuoai.airing.network',
       // all origin
       '*',
     ],

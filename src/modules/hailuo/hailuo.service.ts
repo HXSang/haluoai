@@ -376,4 +376,73 @@ export class HailuoService {
       }
     }
   }
+
+
+  async uploadImageToVideo(account: Account, imageUrl: string, prompt: string) {
+    let browser;
+    let page;
+
+    try {
+      const { browser: initializedBrowser, page: initializedPage } = await this.initializeBrowser(account);
+      browser = initializedBrowser;
+      page = initializedPage;
+
+      // Navigate to create page
+      await page.goto('https://hailuoai.video/create', {
+        waitUntil: ['domcontentloaded', 'networkidle0'],
+        timeout: 60000,
+      });
+
+      // Wait for the upload element to be present
+      await page.waitForSelector('.ant-upload.ant-upload-select');
+
+      // Set up file input handling
+      const [fileChooser] = await Promise.all([
+        page.waitForFileChooser(),
+        page.click('.ant-upload.ant-upload-select')
+      ]);
+
+      // Download the image from URL and save it temporarily
+      const response = await fetch(imageUrl);
+      const buffer = await response.arrayBuffer();
+      const tempFilePath = path.join(process.cwd(), 'temp-image.jpg');
+      fs.writeFileSync(tempFilePath, Buffer.from(buffer));
+
+      // Upload the file
+      await fileChooser.accept([tempFilePath]);
+
+      // Clean up temporary file
+      fs.unlinkSync(tempFilePath);
+
+      // Wait for upload to complete and input to be ready
+      await page.waitForSelector('#video-create-input');
+
+      // Clear existing input and type the prompt
+      await page.evaluate(() => {
+        const input = document.querySelector('#video-create-input') as HTMLTextAreaElement;
+        if (input) input.value = '';
+      });
+      await page.type('#video-create-input', prompt);
+
+      // Wait for create button and click it
+      await page.waitForSelector('.pink-gradient-btn');
+      await page.click('.pink-gradient-btn');
+
+      // Wait for some indication of success (you might need to adjust this based on the actual UI)
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      return {
+        success: true,
+        message: 'Image uploaded and video creation initiated'
+      };
+
+    } catch (error) {
+      this.logger.error('Error uploading image and creating video:', error);
+      throw new Error(`Failed to upload image and create video: ${error.message}`);
+    } finally {
+      if (browser) {
+        await browser.close().catch(() => {});
+      }
+    }
+  }
 }
