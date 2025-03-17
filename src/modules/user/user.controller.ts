@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthClaims, GetUser } from '@n-decorators';
 import { User } from '@prisma/client';
+import { FilterUserDto } from './dto/filter-user.dto';
 
 @Controller('user')
 @ApiTags('User')
@@ -25,8 +26,8 @@ export class UserController {
   }
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  findAll(@Query() filterUserDto: FilterUserDto) {
+    return this.userService.findAll(filterUserDto);
   }
 
   @Get(':id')
