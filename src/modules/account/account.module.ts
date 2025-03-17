@@ -5,9 +5,10 @@ import { AccountSchedule } from './account.schedule';
 import { PrismaModule } from '@n-database/prisma/prisma.module';
 import { AccountRepository } from './account.repository';
 import { HailuoModule } from '@n-modules/hailuo/hailuo.module';
+import { VideoResultModule } from '@n-modules/video-result/video-result.module';
 
 @Module({
-  imports: [PrismaModule, HailuoModule  ],  
+  imports: [PrismaModule, HailuoModule, VideoResultModule ],  
   controllers: [AccountController],
   providers: [AccountService, AccountSchedule, AccountRepository],
   exports: [AccountService, AccountSchedule, AccountRepository],

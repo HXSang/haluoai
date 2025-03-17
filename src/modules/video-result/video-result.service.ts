@@ -14,17 +14,25 @@ export class VideoResultService {
     return 'This action adds a new videoResult';
   }
 
-  findAll(filterVideoResultDto: FilterVideoResultDto  ) { 
-    const { page, limit, search, accountId } = filterVideoResultDto;    
-    return this.videoResultRepository.paginate({
+  async findAll(filterVideoResultDto: FilterVideoResultDto) { 
+    const { page, limit, search, accountId, jobQueueId } = filterVideoResultDto;    
+    const result = await this.videoResultRepository.paginate({
       page,
       limit,
       where: {
-        videoUrl: { 
-          contains: search,
-        },
+        ...(search && { videoUrl: { contains: search } }),
+        ...(accountId && { accountId: accountId }),
+        ...(jobQueueId && { jobQueueId: jobQueueId }),
       },
     }); 
+
+    // Transform BigInt to string in the response
+    return {
+      ...result,
+      items: result.items.map(item => ({
+        ...item,
+      })),
+    };
   }
 
   findOne(id: number) {

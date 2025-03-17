@@ -1,21 +1,20 @@
 import { PaginationDto } from "@n-dtos";
-import { ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsNumber, IsOptional } from "class-validator";
 import { IsString } from "class-validator";
 
 export class FilterVideoResultDto extends PaginationDto {
-  @ApiPropertyOptional({ description: 'Search by video url' })  
+  @ApiProperty({ description: 'Search by video url', example: 'https://www.example.com/video.mp4' })
   @IsOptional()
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Search by account id' })  
+  @ApiProperty({ description: 'Search by account id', example: 1 })
   @IsOptional()
   @IsNumber()
   accountId?: number;           
 
-
-  @ApiPropertyOptional({ description: 'Search by job queue id' })  
+  @ApiProperty({ description: 'Search by job queue id', example: 1 })
   @IsOptional()
   @IsNumber()
   jobQueueId?: number;  

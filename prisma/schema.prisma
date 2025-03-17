@@ -28,6 +28,12 @@ enum QueueStatus {
   FAILED
 }
 
+enum Model {
+  I2V_01_DIRECTOR
+  I2V_01_LIVE
+  I2V_01
+}
+
 model User {
   id         Int       @id @default(autoincrement())
   name       String    @map("name")
@@ -149,6 +155,7 @@ model JobQueue {
   generateTimes Int @map("generate_times") @default(1)
   generatedTimes Int @map("generated_times") @default(0)
   accountId Int? @map("account_id")
+  model Model? @map("model")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
@@ -162,7 +169,6 @@ model JobQueue {
 model VideoResult {
   id        Int       @id @default(autoincrement())
   batchId   String    @map("batch_id")
-  batchCreateTime BigInt @map("batch_create_time")
   batchType Int    @map("batch_type")
   videoId   String    @map("video_id")
   description String  @map("description")

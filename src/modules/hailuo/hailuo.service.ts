@@ -12,7 +12,7 @@ export class HailuoService {
 
   private async initializeBrowser(account: Account, options: { headless?: boolean } = {}) {
     const browser = await puppeteer.launch({
-      headless: options.headless ?? false,
+      headless: options.headless ?? true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -338,7 +338,6 @@ export class HailuoService {
           for (const asset of batch.assets) {
             const videoResult = {
               batchId: batch.batchID,
-              batchCreateTime: batch.batchCreateTime,
               batchType: batch.batchType,
               videoId: asset.id,
               description: asset.desc,
@@ -472,7 +471,7 @@ export class HailuoService {
       await generateInput.type(generateTimes.toString());
       
       // Wait a bit for the system to adjust the value
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       // Get the actual value after system adjustment
       const actualGenerateTimes = await page.evaluate(() => {
@@ -490,7 +489,7 @@ export class HailuoService {
 
       // Wait for some indication of success
       console.log('[ProcessJob] Waiting for generation to start...');
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      await new Promise(resolve => setTimeout(resolve, 5000));
       console.log('[ProcessJob] Generation started');
 
       return {

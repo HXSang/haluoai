@@ -9,16 +9,32 @@ import { Account } from '@prisma/client';
 import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { PrismaService } from '@n-database/prisma/prisma.service';
 import { FilterAccountDto } from './dto/filter-account.dto';
-
+import { VideoResultService } from '@n-modules/video-result/video-result.service';
 @Injectable()
 export class AccountService {
   private readonly logger = new Logger(AccountService.name);
 
   constructor(
     private readonly accountRepository: AccountRepository,
+    private readonly videoResultService: VideoResultService,
     private readonly hailouService: HailuoService,
     private readonly prisma: PrismaService
   ) {}
+
+  async findAll() {
+    return await this.accountRepository.findMany();
+  } 
+
+  async findActiveAccounts() {
+    return await this.accountRepository.findMany({
+      where: {
+        isActive: true,
+        cookie: {
+          not: ""
+        },  
+      },
+    });
+  }
 
   async loginHailuoaiByGoogle(createAccountDto: CreateAccountDto) {
     const account = await this.accountRepository.findFirst({
@@ -64,9 +80,7 @@ export class AccountService {
       // Create video results in database
       const createdVideos = await Promise.all(
         videosResponse.data.map(async (video) => {
-          return await this.prisma.videoResult.create({
-            data: video
-          });
+          return await this.videoResultService.create(video);
         })
       );
 
