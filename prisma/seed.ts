@@ -1,33 +1,93 @@
 import { AuthType, PrismaClient } from "@prisma/client";
-
+import * as bcrypt from 'bcryptjs';
 // initialize Prisma Client
 const prisma = new PrismaClient();
 
 // seed account
 async function seedAccount() {
-    const accounts = await prisma.account.createMany({
-        data: [
-            {
-                email: 'GavetteStoeberl@gmail.com',
-                password: 'GameBusiness09@',
-                cookie: '',
+    const accounts = [
+        {
+            email: 'GavetteStoeberl@gmail.com',
+            password: 'GameBusiness09@',
+            cookie: '',
+            isCookieActive: false,
+            isActive: true,
+        },
+        {
+            email: 'ThoranHeimburger@gmail.com', 
+            password: 'GameBusiness10@',
+            cookie: '',
+            isCookieActive: false,
+            isActive: true,
+        },
+        {
+            email: 'zoom@colorme.vn',
+            password: 'color1234',
+            cookie: '',
+            isCookieActive: false,
+            isActive: true,
+        },
+    ];
+    
+    for (const account of accounts) {
+        const existingAccount = await prisma.account.findFirst({
+            where: {
+                email: account.email,
             },
-            {
-                email: 'ThoranHeimburger@gmail.com', 
-                password: 'GameBusiness10@',
-                cookie: '',
-            },
-            {
-                email: 'zoom@colorme.vn',
-                password: 'color1234',
-                cookie: '',
-            },
-        ]
-    });
+        });
+        if (existingAccount) {
+            continue;
+        }   
+        account.password = await bcrypt.hash(account.password, 10); 
+        await prisma.account.create({
+            data: account,
+        });
+    }
+
+    console.log(`[Seed] Seeded ${accounts.length} accounts`);
 }   
+
+async function seedUser() {
+    const users = [
+        {
+            email: 'admin@gmail.com',
+            password: 'color1234',
+            name: 'Admin',
+            authType: AuthType.EMAIL,
+        },
+    ]   
+    for (const user of users) {
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                email: user.email,
+            },
+        });
+
+        // Hash the password before creating/updating
+        const hashedPassword = await bcrypt.hash(user.password, 10);
+        const userData = {
+            ...user,
+            password: hashedPassword,
+        };
+
+        if (existingUser) {
+            await prisma.user.update({
+                where: { id: existingUser.id },
+                data: userData,
+            });
+        } else {
+            await prisma.user.create({
+                data: userData,
+            }); 
+        }
+    }
+
+    console.log(`[Seed] Seeded ${users.length} users`);
+}
 
 async function main() {
     await seedAccount();
+    await seedUser();
 }
 
 // execute the main function

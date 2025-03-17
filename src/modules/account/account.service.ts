@@ -8,6 +8,7 @@ import * as path from 'path';
 import { Account } from '@prisma/client';
 import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { PrismaService } from '@n-database/prisma/prisma.service';
+import { FilterAccountDto } from './dto/filter-account.dto';
 
 @Injectable()
 export class AccountService {
@@ -81,6 +82,34 @@ export class AccountService {
 
   async getAllAccounts() {
     return await this.accountRepository.findMany();
+  }
+
+  async paginate(filterAccountDto: FilterAccountDto) {
+    const { page, limit } = filterAccountDto;
+    return await this.accountRepository.paginate({
+      page,
+      limit,
+    });
+  }
+
+  async findRandomActiveAccount() {
+    const accounts = await this.accountRepository.findManyRandom(1, {
+      where: {
+        isActive: true,
+        cookie: {
+          not: null,
+        },
+      },
+    });
+    return accounts[0];
+  }
+
+  async findOne(id: number) {
+    return await this.accountRepository.findUnique({
+      where: {
+        id: id,
+      },
+    });
   }
 }
 

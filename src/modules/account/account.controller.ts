@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { FilterAccountDto } from './dto/filter-account.dto';
 
 @Controller('account')  
 @ApiTags('Account')
@@ -15,8 +16,8 @@ export class AccountController {
 
   // get all
   @Get()
-  getAllAccounts() {
-    return this.accountService.getAllAccounts();
+  getAllAccounts(@Query() filterAccountDto: FilterAccountDto) {
+    return this.accountService.paginate(filterAccountDto);
   }
 
   @Get(':accountId/videos')

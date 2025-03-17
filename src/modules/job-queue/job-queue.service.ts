@@ -2,12 +2,18 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobQueueDto } from './dto/create-job-queue.dto';
 import { UpdateJobQueueDto } from './dto/update-job-queue.dto';
 import { JobQueueRepository } from './job-queue.repository';
-import { QueueStatus } from '@prisma/client';
+import { Account, QueueStatus } from '@prisma/client';
 import { FilterJobQueueDto } from './dto/filter-job-queue.dto';
+import { HailuoService } from '@n-modules/hailuo/hailuo.service';
+import { AccountService } from '@n-modules/account/account.service';
 
 @Injectable()
 export class JobQueueService {
-  constructor(private readonly jobQueueRepository: JobQueueRepository) {}
+  constructor(
+    private readonly jobQueueRepository: JobQueueRepository,  
+    private readonly hailuoService: HailuoService,
+    private readonly accountService: AccountService,  
+  ) {}
 
   async create(createJobQueueDto: CreateJobQueueDto) {
     return this.jobQueueRepository.create({
@@ -31,6 +37,9 @@ export class JobQueueService {
       },
       orderBy: {
         createdAt: 'desc',
+      },
+      include: {
+        account: true,
       },
     });
   }
@@ -57,10 +66,12 @@ export class JobQueueService {
     return this.jobQueueRepository.delete(id);
   }
 
-  async findPendingJobs() {
-    return this.jobQueueRepository.findMany({
+  async findPendingJob() {
+    return this.jobQueueRepository.findFirst({
       where: {
-        status: QueueStatus.PENDING,
+        status: {
+          in: [QueueStatus.PENDING, QueueStatus.PROCESSING]
+        },
       },
       orderBy: {
         createdAt: 'asc',
@@ -84,5 +95,54 @@ export class JobQueueService {
     return this.jobQueueRepository.update(id, {
       status: QueueStatus.FAILED,
     });
+  }
+
+  async markAsPending(id: number) {
+    return this.jobQueueRepository.update(id, {
+      status: QueueStatus.PENDING,
+    });
+  }
+
+  async process(id: number) {
+    const job = await this.findOne(id);
+
+    if (job.status === QueueStatus.COMPLETED) {
+      return {
+        success: true,
+        message: 'Job already completed',
+      };
+    }
+
+    // if job.accountId is null, then we need to find the random account  
+    let account: Account;
+    if (job.accountId) {
+      account = await this.accountService.findOne(job.accountId);
+    } else {
+      account = await this.accountService.findRandomActiveAccount();
+    }
+
+    // if account have no cookie, then we need to return failed
+    if (!account.cookie) {
+      await this.markAsFailed(id);
+      return {
+        success: false,
+        message: 'Account has no cookie',
+      };
+    }
+
+    console.log(`[ProcessJob] Processing job ${id} for account ${account.email}`);
+
+    const result = await this.hailuoService.processJob(account, job);
+
+    // update generatedTimes
+    let newGenerateTimes = job.generatedTimes + result.actualGenerateTimes;
+    newGenerateTimes = Math.min(newGenerateTimes, job.generateTimes);
+    const newStatus = newGenerateTimes >= job.generateTimes ? QueueStatus.COMPLETED : QueueStatus.PROCESSING;
+    await this.jobQueueRepository.update(id, {
+      generatedTimes: newGenerateTimes,
+      status: newStatus,
+    });
+
+    return result;
   }
 }

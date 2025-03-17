@@ -9,7 +9,7 @@ export class JobQueueProcessor {
 
   constructor(private readonly jobQueueService: JobQueueService) {}
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async processJobs() {
     if (this.isProcessing) {
       return;
@@ -17,19 +17,26 @@ export class JobQueueProcessor {
 
     try {
       this.isProcessing = true;
-      const pendingJobs = await this.jobQueueService.findPendingJobs();
+      const job = await this.jobQueueService.findPendingJob();
 
-      for (const job of pendingJobs) {
-        try {
-          await this.jobQueueService.markAsProcessing(job.id);
-          
-          // Process the job here
-          // This is where you would implement the actual job processing logic
-          // For example, calling an AI service, processing images, etc.
-          
-          await this.jobQueueService.markAsCompleted(job.id);
-          this.logger.log(`Successfully processed job ${job.id}`);
-        } catch (error) {
+      if (!job) {
+        this.logger.log('No pending job found');
+        return;
+      }
+
+      try {
+        await this.jobQueueService.markAsProcessing(job.id);
+
+        await this.jobQueueService.process(job.id);
+
+        // await this.jobQueueService.markAsCompleted(job.id);
+        this.logger.log(`Successfully processed job ${job.id}`);
+      } catch (error) {
+        // Check if it's the concurrent limit error
+        if (error.message.includes('Maximum concurrent video generation limit (5) reached')) {
+          this.logger.warn(`Job ${job.id} skipped: ${error.message}`);
+          await this.jobQueueService.markAsPending(job.id); // Reset back to pending
+        } else {
           await this.jobQueueService.markAsFailed(job.id);
           this.logger.error(`Failed to process job ${job.id}: ${error.message}`);
         }
@@ -40,4 +47,4 @@ export class JobQueueProcessor {
       this.isProcessing = false;
     }
   }
-} 
+}

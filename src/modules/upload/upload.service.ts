@@ -37,7 +37,8 @@ export class UploadService {
       originalName: file.originalname,
       path: `/uploads/${fileName}`,
       size: file.size,
-      mimeType: file.mimetype
+      mimeType: file.mimetype,
+      url: `${process.env.APP_URL}/uploads/${fileName}`,
     };
   }
 

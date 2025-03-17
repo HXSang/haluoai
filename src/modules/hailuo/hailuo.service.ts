@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Account } from '@prisma/client';
+import { Account, JobQueue } from '@prisma/client';
 import { AccountService } from '@n-modules/account/account.service';
 
 @Injectable()
@@ -378,66 +378,129 @@ export class HailuoService {
   }
 
 
-  async uploadImageToVideo(account: Account, imageUrl: string, prompt: string) {
+  async processJob(account: Account, job: JobQueue) {
+    const { imageUrl, prompt, generateTimes = 1 } = job;
     let browser;
     let page;
 
     try {
+      console.log(`[ProcessJob] Starting for account ${account.email}`);
+      
+      // First check how many videos are currently being generated
+      console.log('[ProcessJob] Checking current video generation count...');
+      const videosListResponse = await this.getVideosList(account);
+      const generatingVideos = videosListResponse.data.filter(video => !video.videoUrl);
+      console.log(`[ProcessJob] Found ${generatingVideos.length} videos currently being generated`);
+      
+      if (generatingVideos.length >= 5) {
+        console.log(`[ProcessJob] Generation limit reached: ${generatingVideos.length} videos in progress`);
+        throw new Error('Maximum concurrent video generation limit (5) reached. Please try again later.');
+      }
+
+      console.log('[ProcessJob] Initializing browser...');
       const { browser: initializedBrowser, page: initializedPage } = await this.initializeBrowser(account);
       browser = initializedBrowser;
       page = initializedPage;
 
       // Navigate to create page
+      console.log('[ProcessJob] Navigating to create page...');
       await page.goto('https://hailuoai.video/create', {
         waitUntil: ['domcontentloaded', 'networkidle0'],
         timeout: 60000,
       });
 
       // Wait for the upload element to be present
-      await page.waitForSelector('.ant-upload.ant-upload-select');
-
-      // Set up file input handling
-      const [fileChooser] = await Promise.all([
-        page.waitForFileChooser(),
-        page.click('.ant-upload.ant-upload-select')
-      ]);
+      console.log('[ProcessJob] Checking upload element selector...');
+      await page.waitForSelector('input[type="file"]');
+      console.log('[ProcessJob] Upload element found');
 
       // Download the image from URL and save it temporarily
+      console.log('[ProcessJob] Downloading image...');
       const response = await fetch(imageUrl);
       const buffer = await response.arrayBuffer();
       const tempFilePath = path.join(process.cwd(), 'temp-image.jpg');
       fs.writeFileSync(tempFilePath, Buffer.from(buffer));
+      console.log('[ProcessJob] Image downloaded');
 
       // Upload the file
-      await fileChooser.accept([tempFilePath]);
+      console.log('[ProcessJob] Uploading file...');
+      const inputElement = await page.$('input[type="file"]');
+      await inputElement.evaluate((el) => {
+        el.style.display = 'block';
+        el.style.visibility = 'visible';
+      });
+      await inputElement.uploadFile(tempFilePath);
+      console.log('[ProcessJob] File uploaded');
+
+      // Wait for upload to complete
+      console.log('[ProcessJob] Waiting 15s for upload to process...');
+      await new Promise(resolve => setTimeout(resolve, 8000));
+      console.log('[ProcessJob] Upload processing completed');
+
+      // Check if upload was successful by looking for the uploaded image element
+      console.log('[ProcessJob] Validating upload success...');
+      try {
+        await page.waitForSelector('img[alt="uploaded image"]', { timeout: 5000 });
+        console.log('[ProcessJob] Upload validation successful');
+      } catch (error) {
+        console.error('[ProcessJob] Upload validation failed');
+        throw new Error('Image upload failed - uploaded image not found');
+      }
 
       // Clean up temporary file
       fs.unlinkSync(tempFilePath);
+      console.log('[ProcessJob] Temp file cleaned');
 
       // Wait for upload to complete and input to be ready
-      await page.waitForSelector('#video-create-input');
+      console.log('[ProcessJob] Checking prompt input...');
+      const promptInput = await page.waitForSelector('#video-create-textarea');
+      console.log('[ProcessJob] Prompt input found:', !!promptInput);
 
       // Clear existing input and type the prompt
+      console.log('[ProcessJob] Setting prompt...');
       await page.evaluate(() => {
-        const input = document.querySelector('#video-create-input') as HTMLTextAreaElement;
+        const input = document.querySelector('#video-create-textarea') as HTMLTextAreaElement;
         if (input) input.value = '';
       });
-      await page.type('#video-create-input', prompt);
+      await page.type('#video-create-textarea', prompt);
+      console.log('[ProcessJob] Prompt set');
+
+      // Set generate times
+      console.log('[ProcessJob] Setting generate times...');
+      const generateInput = await page.waitForSelector('.ant-input-number input.ant-input-number-input');
+      await generateInput.click({ clickCount: 3 });
+      await generateInput.type(generateTimes.toString());
+      
+      // Wait a bit for the system to adjust the value
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Get the actual value after system adjustment
+      const actualGenerateTimes = await page.evaluate(() => {
+        const input = document.querySelector('.ant-input-number input.ant-input-number-input') as HTMLInputElement;
+        return input ? parseInt(input.value) : 1;
+      });
+      console.log('[ProcessJob] Actual generate times allowed:', actualGenerateTimes);
 
       // Wait for create button and click it
-      await page.waitForSelector('.pink-gradient-btn');
+      console.log('[ProcessJob] Finding create button...');
+      const createButton = await page.waitForSelector('.pink-gradient-btn');
+      console.log('[ProcessJob] Create button found:', !!createButton);
       await page.click('.pink-gradient-btn');
+      console.log('[ProcessJob] Create button clicked');
 
-      // Wait for some indication of success (you might need to adjust this based on the actual UI)
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Wait for some indication of success
+      console.log('[ProcessJob] Waiting for generation to start...');
+      await new Promise(resolve => setTimeout(resolve, 30000));
+      console.log('[ProcessJob] Generation started');
 
       return {
         success: true,
-        message: 'Image uploaded and video creation initiated'
+        message: 'Image uploaded and video creation initiated',
+        actualGenerateTimes
       };
 
     } catch (error) {
-      this.logger.error('Error uploading image and creating video:', error);
+      console.error('[ProcessJob] Error:', error.message);
       throw new Error(`Failed to upload image and create video: ${error.message}`);
     } finally {
       if (browser) {
@@ -445,4 +508,5 @@ export class HailuoService {
       }
     }
   }
+
 }

@@ -20,6 +20,11 @@ export class JobQueueController {
     return this.jobQueueService.findAll(filterJobQueueDto);
   }
 
+  @Post('/:id/process')
+  process(@Param('id') id: string) {
+    return this.jobQueueService.process(+id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.jobQueueService.findOne(+id);

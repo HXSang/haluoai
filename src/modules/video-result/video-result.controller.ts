@@ -3,8 +3,10 @@ import { VideoResultService } from './video-result.service';
 import { CreateVideoResultDto } from './dto/create-video-result.dto';
 import { UpdateVideoResultDto } from './dto/update-video-result.dto';
 import { FilterVideoResultDto } from './dto/filter-video-result.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('video-result')
+@Controller('video')
+@ApiTags('Video')
 export class VideoResultController {
   constructor(private readonly videoResultService: VideoResultService) {}
 

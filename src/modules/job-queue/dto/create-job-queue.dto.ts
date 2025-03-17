@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsEnum, IsNumber, IsOptional, IsInt, Min } from 'class-validator';
+import { IsNotEmpty, IsString, IsEnum, IsNumber, IsOptional } from 'class-validator';
 import { QueueStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -24,8 +24,7 @@ export class CreateJobQueueDto {
   generateTimes: number = 0;
 
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  @ApiProperty({ description: 'The account id of the job queue', required: false, nullable: true, minimum: 1 })     
+  @IsNumber()
+  @ApiProperty({ description: 'The account id of the job queue', required: false, nullable: true })     
   accountId?: number | null;
 }
