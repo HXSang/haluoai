@@ -131,6 +131,7 @@ model Account {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
+  browserCache String?
 
   jobQueues JobQueue[]
   videoResults VideoResult[]
@@ -157,14 +158,30 @@ model JobQueue {
 
 model VideoResult {
   id        Int       @id @default(autoincrement())
-  jobQueueId   Int       @map("job_queue_id")
+  batchId   String    @map("batch_id")
+  batchCreateTime BigInt @map("batch_create_time")
+  batchType Int    @map("batch_type")
+  videoId   String    @map("video_id")
+  description String  @map("description")
+  coverUrl  String    @map("cover_url")
   videoUrl  String    @map("video_url")
-  accountId Int @map("account_id")
+  downloadUrl String  @map("download_url")
+  status    Int       @map("status")
+  width     Int       @map("width")
+  height    Int       @map("height")
+  hasVoice  Boolean   @map("has_voice")
+  modelId   String    @map("model_id")
+  userId    String    @map("user_id")
+  createType Int      @map("create_type")
+  promptImgUrl String? @map("prompt_img_url")
+  extra     Json?     @map("extra")
+  accountId Int       @map("account_id")
+  jobQueueId Int?     @map("job_queue_id")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  jobQueue JobQueue @relation(fields: [jobQueueId], references: [id])
+  jobQueue JobQueue? @relation(fields: [jobQueueId], references: [id])
   account Account @relation(fields: [accountId], references: [id])
 
   @@map("video_results")

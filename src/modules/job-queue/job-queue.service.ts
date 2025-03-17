@@ -1,26 +1,79 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobQueueDto } from './dto/create-job-queue.dto';
 import { UpdateJobQueueDto } from './dto/update-job-queue.dto';
+import { JobQueueRepository } from './job-queue.repository';
+import { QueueStatus } from '@prisma/client';
 
 @Injectable()
 export class JobQueueService {
-  create(createJobQueueDto: CreateJobQueueDto) {
-    return 'This action adds a new jobQueue';
+  constructor(private readonly jobQueueRepository: JobQueueRepository) {}
+
+  async create(createJobQueueDto: CreateJobQueueDto) {
+    return this.jobQueueRepository.create({
+      imageUrl: createJobQueueDto.imageUrl,
+      prompt: createJobQueueDto.prompt,
+      status: createJobQueueDto.status,
+      generateTimes: createJobQueueDto.generateTimes,
+      accountId: createJobQueueDto.accountId,
+    });
   }
 
-  findAll() {
-    return `This action returns all jobQueue`;
+  async findAll() {
+    return this.jobQueueRepository.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} jobQueue`;
+  async findOne(id: number) {
+    const job = await this.jobQueueRepository.findUnique({
+      where: { id },
+    });
+
+    if (!job) {
+      throw new NotFoundException(`Job queue with ID ${id} not found`);
+    }
+
+    return job;
   }
 
-  update(id: number, updateJobQueueDto: UpdateJobQueueDto) {
-    return `This action updates a #${id} jobQueue`;
+  async update(id: number, updateJobQueueDto: UpdateJobQueueDto) {
+    await this.findOne(id); // Check if exists
+    return this.jobQueueRepository.update(id, updateJobQueueDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} jobQueue`;
+  async remove(id: number) {
+    await this.findOne(id); // Check if exists
+    return this.jobQueueRepository.delete(id);
+  }
+
+  async findPendingJobs() {
+    return this.jobQueueRepository.findMany({
+      where: {
+        status: QueueStatus.PENDING,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+  }
+
+  async markAsProcessing(id: number) {
+    return this.jobQueueRepository.update(id, {
+      status: QueueStatus.PROCESSING,
+    });
+  }
+
+  async markAsCompleted(id: number) {
+    return this.jobQueueRepository.update(id, {
+      status: QueueStatus.COMPLETED,
+    });
+  }
+
+  async markAsFailed(id: number) {
+    return this.jobQueueRepository.update(id, {
+      status: QueueStatus.FAILED,
+    });
   }
 }

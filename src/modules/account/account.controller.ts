@@ -18,4 +18,9 @@ export class AccountController {
   getAllAccounts() {
     return this.accountService.getAllAccounts();
   }
+
+  @Get(':accountId/videos')
+  syncAccountVideos(@Param('accountId') accountId: string) {
+    return this.accountService.syncAccountVideos(Number(accountId));
+  }
 }

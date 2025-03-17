@@ -26,6 +26,8 @@ import { ResponseInterceptor } from '@n-interceptors/response.interceptor';
 import { AccountModule } from './modules/account/account.module';
 import { VideoResultModule } from './modules/video-result/video-result.module';
 import { JobQueueModule } from './modules/job-queue/job-queue.module';
+import { HailuoModule } from './modules/hailuo/hailuo.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -61,7 +63,7 @@ import { JobQueueModule } from './modules/job-queue/job-queue.module';
       global: true,
       middleware: { mount: true },
     }),
-    AuthModule, UserModule, AccountModule, VideoResultModule, JobQueueModule,
+    AuthModule, UserModule, AccountModule, VideoResultModule, JobQueueModule, HailuoModule, UploadModule,
   ],
   controllers: [AppController],
   providers: [
