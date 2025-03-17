@@ -1,5 +1,5 @@
 import { red } from 'colorette';
-
+import { join } from 'path';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import {
@@ -14,8 +14,13 @@ import { BaseException } from '@n-exceptions';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app: INestApplication = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const port = process.env.PORT || 3000;
+
+  // Configure static file serving
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads',
+  });
 
   app.use(cookieParser());
   // handle cors and trust origin

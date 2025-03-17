@@ -5,9 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UploadService {
-  private readonly uploadDir = 'uploads';
+  private readonly uploadDir: string;
 
   constructor() {
+    this.uploadDir = path.join(process.cwd(), 'uploads');
     // Create uploads directory if it doesn't exist
     this.ensureUploadDirectory();
   }
@@ -34,7 +35,7 @@ export class UploadService {
     return {
       fileName,
       originalName: file.originalname,
-      path: filePath,
+      path: `/uploads/${fileName}`,
       size: file.size,
       mimeType: file.mimetype
     };

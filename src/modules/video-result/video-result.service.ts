@@ -1,15 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { CreateVideoResultDto } from './dto/create-video-result.dto';
 import { UpdateVideoResultDto } from './dto/update-video-result.dto';
+import { FilterVideoResultDto } from './dto/filter-video-result.dto';
+import { VideoResultRepository } from './video-result.repository';
 
 @Injectable()
 export class VideoResultService {
+  constructor(
+    private readonly videoResultRepository: VideoResultRepository,
+  ) {}
+
   create(createVideoResultDto: CreateVideoResultDto) {
     return 'This action adds a new videoResult';
   }
 
-  findAll() {
-    return `This action returns all videoResult`;
+  findAll(filterVideoResultDto: FilterVideoResultDto  ) { 
+    const { page, limit, search, accountId } = filterVideoResultDto;    
+    return this.videoResultRepository.paginate({
+      page,
+      limit,
+      where: {
+        videoUrl: { 
+          contains: search,
+        },
+      },
+    }); 
   }
 
   findOne(id: number) {

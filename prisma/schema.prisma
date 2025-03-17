@@ -128,6 +128,7 @@ model Account {
   cookie    String    @map("cookie")
   isCookieActive Boolean @default(false) @map("is_cookie_active")
   lastLoginAt DateTime? @map("last_login_at")
+  isActive Boolean @default(true) @map("is_active")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
@@ -144,13 +145,14 @@ model JobQueue {
   imageUrl  String    @map("image_url")
   prompt    String    @map("prompt")
   status    QueueStatus @map("status")
-  generateTimes Int @map("generate_times")
-  accountId Int @map("account_id")
+  generateTimes Int @map("generate_times") @default(1)
+  generatedTimes Int @map("generated_times") @default(0)
+  accountId Int? @map("account_id")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  account Account @relation(fields: [accountId], references: [id])
+  account Account? @relation(fields: [accountId], references: [id])
   videoResults VideoResult[]
 
   @@map("queues") 
@@ -175,14 +177,14 @@ model VideoResult {
   createType Int      @map("create_type")
   promptImgUrl String? @map("prompt_img_url")
   extra     Json?     @map("extra")
-  accountId Int       @map("account_id")
+  accountId Int?     @map("account_id")
   jobQueueId Int?     @map("job_queue_id")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   jobQueue JobQueue? @relation(fields: [jobQueueId], references: [id])
-  account Account @relation(fields: [accountId], references: [id])
+  account Account? @relation(fields: [accountId], references: [id])
 
   @@map("video_results")
 }

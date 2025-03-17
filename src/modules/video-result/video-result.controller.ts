@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { VideoResultService } from './video-result.service';
 import { CreateVideoResultDto } from './dto/create-video-result.dto';
 import { UpdateVideoResultDto } from './dto/update-video-result.dto';
+import { FilterVideoResultDto } from './dto/filter-video-result.dto';
 
 @Controller('video-result')
 export class VideoResultController {
@@ -13,8 +14,8 @@ export class VideoResultController {
   }
 
   @Get()
-  findAll() {
-    return this.videoResultService.findAll();
+  findAll(@Query() filterVideoResultDto: FilterVideoResultDto) {
+    return this.videoResultService.findAll(filterVideoResultDto);
   }
 
   @Get(':id')

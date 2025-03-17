@@ -1,6 +1,6 @@
 import { Controller, Post, Delete, UseInterceptors, UploadedFile, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiConsumes, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { UploadService } from './upload.service';
 
 @ApiTags('upload')
@@ -13,6 +13,18 @@ export class UploadController {
   @ApiOperation({ summary: 'Upload a file' })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file'))
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Audio file for IELTS speaking test',
+        },
+      },
+    },
+  })
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     return this.uploadService.uploadFile(file);
   }
