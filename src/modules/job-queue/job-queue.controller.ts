@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { JobQueueService } from './job-queue.service';
 import { CreateJobQueueDto } from './dto/create-job-queue.dto';
 import { UpdateJobQueueDto } from './dto/update-job-queue.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { FilterJobQueueDto } from './dto/filter-job-queue.dto';
 
 @Controller('job-queue')
 @ApiTags('job-queue')
@@ -15,8 +16,8 @@ export class JobQueueController {
   }
 
   @Get()
-  findAll() {
-    return this.jobQueueService.findAll();
+  findAll(@Query() filterJobQueueDto: FilterJobQueueDto) {
+    return this.jobQueueService.findAll(filterJobQueueDto);
   }
 
   @Get(':id')

@@ -3,6 +3,7 @@ import { CreateJobQueueDto } from './dto/create-job-queue.dto';
 import { UpdateJobQueueDto } from './dto/update-job-queue.dto';
 import { JobQueueRepository } from './job-queue.repository';
 import { QueueStatus } from '@prisma/client';
+import { FilterJobQueueDto } from './dto/filter-job-queue.dto';
 
 @Injectable()
 export class JobQueueService {
@@ -18,8 +19,16 @@ export class JobQueueService {
     });
   }
 
-  async findAll() {
-    return this.jobQueueRepository.findMany({
+  async findAll(filterJobQueueDto: FilterJobQueueDto) {
+    const { page, limit, search } = filterJobQueueDto;
+    return this.jobQueueRepository.paginate({
+      page,
+      limit,
+      where: {
+        imageUrl: {
+          contains: search,
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
