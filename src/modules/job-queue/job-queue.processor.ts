@@ -9,7 +9,7 @@ export class JobQueueProcessor {
 
   constructor(private readonly jobQueueService: JobQueueService) {}
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async processJobs() {
     if (this.isProcessing) {
       return;
