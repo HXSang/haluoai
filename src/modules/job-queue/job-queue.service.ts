@@ -106,12 +106,12 @@ export class JobQueueService {
   async process(id: number) {
     const job = await this.findOne(id);
 
-    if (job.status === QueueStatus.COMPLETED) {
-      return {
-        success: true,
-        message: 'Job already completed',
-      };
-    }
+    // if (job.status === QueueStatus.COMPLETED) {
+    //   return {
+    //     success: true,
+    //     message: 'Job already completed',
+    //   };
+    // }
 
     // if job.accountId is null, then we need to find the random account  
     let account: Account;
