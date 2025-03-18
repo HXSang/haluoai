@@ -10,7 +10,7 @@ export class HailuoService {
 
   private async initializeBrowser(account: Account, options: { headless?: boolean } = {}) {
     const browser = await puppeteer.launch({
-      headless: options.headless ?? true,
+      headless: options.headless ?? false,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -38,7 +38,7 @@ export class HailuoService {
     page.setDefaultNavigationTimeout(60000);
     page.setDefaultTimeout(60000);
 
-    // Set cookies if they exist
+    // Set cookies if they exist  
     if (account.cookie) {
       try {
         const cookies = JSON.parse(account.cookie);
@@ -120,36 +120,49 @@ export class HailuoService {
       // Create login check promise
       const waitForLogin = new Promise<boolean>((resolve, reject) => {
         let checkCount = 0;
-        const maxChecks = 30; // 30 seconds timeout
+        const maxChecks = 100; // 30 seconds timeout
+        let timeoutId: NodeJS.Timeout;
 
         const checkLogin = async () => {
+          if (checkCount >= maxChecks) {
+            console.log(`Login check timed out after ${maxChecks} attempts`);
+            clearTimeout(timeoutId);
+            resolve(false);
+            return;
+          }
+
           try {
+            console.log(`Checking login status... Attempt ${checkCount + 1}/${maxChecks}`);
             const isLoggedIn = await page.evaluate(() => {
-              const signOutButton = Array.from(
-                document.querySelectorAll('div'),
-              ).find((el) => el.textContent?.includes('Sign Out'));
-              return !!signOutButton;
+              const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
+              return !!avatarImg;
             });
 
             if (isLoggedIn) {
+              console.log('Login successful! Avatar found.');
+              clearTimeout(timeoutId);
               resolve(true);
               return;
             }
 
+            console.log('Avatar not found yet, continuing to check...');
             checkCount++;
-            if (checkCount >= maxChecks) {
-              resolve(false);
-              return;
-            }
-
-            setTimeout(checkLogin, 1000);
+            timeoutId = setTimeout(checkLogin, 1000);
           } catch (e) {
-            console.log('Checking login status...');
-            setTimeout(checkLogin, 1000);
+            console.log(`Error checking login status (Attempt ${checkCount + 1}/${maxChecks}):`, e.message);
+            checkCount++;
+            timeoutId = setTimeout(checkLogin, 1000);
           }
         };
 
         checkLogin();
+
+        // Global timeout as safety net
+        setTimeout(() => {
+          console.log('Global timeout reached - stopping login check');
+          clearTimeout(timeoutId);
+          resolve(false);
+        }, 32000); // Slightly longer than the check cycle
       });
 
       // Click Google login button
@@ -186,6 +199,7 @@ export class HailuoService {
         await passwordInput.click({ clickCount: 3 });
         await passwordInput.type(account.password, { delay: 100 });
         await passwordInput.press('Enter');
+        await new Promise((resolve) => setTimeout(resolve, 60000));
       } catch (popupError) {
         console.error('Error during popup handling:', popupError);
         // Take screenshot of main page if popup fails

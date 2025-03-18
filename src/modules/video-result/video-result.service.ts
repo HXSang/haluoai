@@ -28,6 +28,13 @@ export class VideoResultService {
         ...(accountId && { accountId: accountId }),
         ...(jobQueueId && { jobQueueId: jobQueueId }),
       },
+      include: {
+        account: true,
+        jobQueue: true,
+      },
+      orderBy: {
+        videoId: 'desc',
+      },
     }); 
 
     // Transform BigInt to string in the response

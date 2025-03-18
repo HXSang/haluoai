@@ -64,7 +64,7 @@ export class JobQueueProcessor {
   }
 
   //job run getVideosList
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  // @Cron(CronExpression.EVERY_30_SECONDS)
   async getVideosList() {
     if (!this.isActiveJobQueue || this.isGettingVideos) {
       return;
@@ -77,7 +77,6 @@ export class JobQueueProcessor {
 
       for (const account of accounts) {
         const videosResponse = await this.hailouService.getVideosList(account);
-        console.log("Videos response: ", videosResponse);
         if (videosResponse.success && videosResponse.data) {
           // Create video results in database
           const createdVideos = await Promise.all(

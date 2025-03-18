@@ -10,6 +10,7 @@ import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { PrismaService } from '@n-database/prisma/prisma.service';
 import { FilterAccountDto } from './dto/filter-account.dto';
 import { VideoResultService } from '@n-modules/video-result/video-result.service';
+import { CreateGAccountDto } from './dto/create-g-account.dto';
 @Injectable()
 export class AccountService {
   private readonly logger = new Logger(AccountService.name);
@@ -36,10 +37,10 @@ export class AccountService {
     });
   }
 
-  async loginHailuoaiByGoogle(createAccountDto: CreateAccountDto) {
+  async loginHailuoaiByGoogle(createGAccountDto: CreateGAccountDto) {
     const account = await this.accountRepository.findFirst({
       where: {
-        email: createAccountDto.email,
+        email: createGAccountDto.email,
       },
     });
     if (!account) {
@@ -53,6 +54,7 @@ export class AccountService {
       await this.accountRepository.update(account.id, {
         cookie: cookies,
         lastLoginAt: new Date(),
+        isCookieActive: true,
       });
 
       return cookies;
@@ -124,6 +126,14 @@ export class AccountService {
         id: id,
       },
     });
+  }
+
+  async create(createAccountDto: CreateAccountDto) {
+    return await this.accountRepository.create(createAccountDto);
+  }
+
+  async update(id: number, updateAccountDto: UpdateAccountDto) {
+    return await this.accountRepository.update(id, updateAccountDto);
   }
 }
 
