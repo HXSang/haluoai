@@ -13,6 +13,7 @@ export class HailuoService {
 
   private async unlockChromeProfile(profilePath: string) {
     try {
+      console.log('unlockChromeProfile, handle profile path: ', profilePath);
       // Ensure profile directory exists
       if (!fs.existsSync(profilePath)) {
         fs.mkdirSync(profilePath, { recursive: true });
@@ -29,6 +30,7 @@ export class HailuoService {
           if (fs.existsSync(file)) {
             fs.chmodSync(file, 0o666); // Ensure we have write permissions
             fs.unlinkSync(file);
+            console.log(`Removed ${path.basename(file)}`);
             this.logger.log(`Removed ${path.basename(file)}`);
           }
         } catch (error) {
