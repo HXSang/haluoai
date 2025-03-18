@@ -30,9 +30,7 @@ export class AccountService {
     return await this.accountRepository.findMany({
       where: {
         isActive: true,
-        cookie: {
-          not: ""
-        },  
+        isCookieActive: true,
       },
     });
   }
@@ -112,9 +110,7 @@ export class AccountService {
     const accounts = await this.accountRepository.findManyRandom(1, {
       where: {
         isActive: true,
-        cookie: {
-          not: null,
-        },
+        isCookieActive: true,
       },
     });
     return accounts[0];
