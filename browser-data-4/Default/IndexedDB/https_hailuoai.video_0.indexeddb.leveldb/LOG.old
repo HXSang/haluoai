@@ -1,14 +1,14 @@
-2025/03/18-15:10:46.323 8403 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-4/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
-2025/03/18-15:10:46.323 8403 Recovering log #46
-2025/03/18-15:10:46.323 8403 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-4/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000046.log 
-2025/03/18-15:10:46.323 8403 Delete type=2 #44
-2025/03/18-15:10:46.379 8403 Level-0 table #51: started
-2025/03/18-15:10:46.384 8403 Level-0 table #51: 3882 bytes OK
-2025/03/18-15:10:46.393 8403 Delete type=0 #46
-2025/03/18-15:10:46.396 8403 Manual compaction at level-0 from '\x00\x10\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x11\x00\x00\x00' @ 0 : 0; will stop at '\x00\x10\x00\x00\x05' @ 588 : 1
-2025/03/18-15:10:46.396 8403 Compacting 1@0 + 1@1 files
-2025/03/18-15:10:46.400 8403 Generated table #52@0: 66 keys, 3860 bytes
-2025/03/18-15:10:46.400 8403 Compacted 1@0 + 1@1 files => 3860 bytes
-2025/03/18-15:10:46.413 8403 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/03/18-15:10:46.414 8403 Delete type=2 #51
-2025/03/18-15:10:46.414 8403 Manual compaction at level-0 from '\x00\x10\x00\x00\x05' @ 588 : 1 .. '\x00\x11\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/03/18-15:16:28.876 a503 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-4/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/03/18-15:16:28.876 a503 Recovering log #54
+2025/03/18-15:16:28.877 a503 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-4/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000054.log 
+2025/03/18-15:16:28.877 a503 Delete type=2 #52
+2025/03/18-15:16:28.904 a503 Level-0 table #59: started
+2025/03/18-15:16:28.910 a503 Level-0 table #59: 3883 bytes OK
+2025/03/18-15:16:28.957 a503 Delete type=0 #54
+2025/03/18-15:16:28.957 a503 Manual compaction at level-0 from '\x00\x12\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x13\x00\x00\x00' @ 0 : 0; will stop at '\x00\x12\x00\x00\x05' @ 678 : 1
+2025/03/18-15:16:28.957 a503 Compacting 1@0 + 1@1 files
+2025/03/18-15:16:28.983 a503 Generated table #60@0: 66 keys, 3861 bytes
+2025/03/18-15:16:28.983 a503 Compacted 1@0 + 1@1 files => 3861 bytes
+2025/03/18-15:16:29.014 a503 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/03/18-15:16:29.014 a503 Delete type=2 #59
+2025/03/18-15:16:29.014 a503 Manual compaction at level-0 from '\x00\x12\x00\x00\x05' @ 678 : 1 .. '\x00\x13\x00\x00\x00' @ 0 : 0; will stop at (end)

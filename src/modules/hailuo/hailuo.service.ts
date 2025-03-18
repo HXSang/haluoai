@@ -423,7 +423,21 @@ export class HailuoService {
         timeout: 60000,
       });
 
-      console.log('checking api response');
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      // Check if user is logged in by looking for avatar
+      console.log('Checking login status...');
+      const isLoggedIn = await page.evaluate(() => {
+        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
+        return !!avatarImg;
+      });
+
+      if (!isLoggedIn) {
+        console.log('User is not logged in');
+        throw new Error('User is not logged in - please login first');
+      }
+
+      console.log('User is logged in, proceeding with video list fetch');
 
       // Wait for API response
       const apiResponse: any = await Promise.race([
