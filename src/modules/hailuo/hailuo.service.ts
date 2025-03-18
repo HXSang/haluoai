@@ -90,10 +90,35 @@ export class HailuoService {
     // Set cookies if they exist  
     if (account.cookie) {
       try {
-        const cookies = JSON.parse(account.cookie);
+        // Validate that cookie is not empty or just whitespace
+        const cookieStr = account.cookie.trim();
+        if (!cookieStr) {
+          this.logger.warn('Empty cookie string found');
+          return { browser, page };
+        }
+
+        // Try to parse cookies
+        let cookies;
+        try {
+          cookies = JSON.parse(cookieStr);
+        } catch (parseError) {
+          this.logger.error('Failed to parse cookies:', parseError);
+          return { browser, page };
+        }
+
+        // Validate cookies array
+        if (!Array.isArray(cookies) || cookies.length === 0) {
+          this.logger.warn('Invalid cookie format or empty cookie array');
+          return { browser, page };
+        }
+
+        // Set valid cookies
         await page.setCookie(...cookies);
+        this.logger.log(`Successfully set ${cookies.length} cookies`);
       } catch (error) {
         this.logger.error('Error setting cookies:', error);
+        // Continue without cookies rather than failing
+        return { browser, page };
       }
     }
 
