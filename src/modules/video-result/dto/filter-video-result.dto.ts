@@ -1,5 +1,6 @@
 import { PaginationDto } from "@n-dtos";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import { IsNumber, IsOptional } from "class-validator";
 import { IsString } from "class-validator";
 
@@ -11,12 +12,12 @@ export class FilterVideoResultDto extends PaginationDto {
 
   @ApiProperty({ description: 'Search by account id', example: 1 })
   @IsOptional()
-  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
   accountId?: number;           
 
   @ApiProperty({ description: 'Search by job queue id', example: 1 })
   @IsOptional()
-  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
   jobQueueId?: number;  
 
   @ApiProperty({ description: 'Search by video id', example: '1234567890' })

@@ -3,11 +3,15 @@ import { CreateVideoResultDto } from './dto/create-video-result.dto';
 import { UpdateVideoResultDto } from './dto/update-video-result.dto';
 import { FilterVideoResultDto } from './dto/filter-video-result.dto';
 import { VideoResultRepository } from './video-result.repository';
+import { JobQueueRepository } from '@n-modules/job-queue/job-queue.repository';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '@n-database/prisma/prisma.service';
 
 @Injectable()
 export class VideoResultService {
   constructor(
     private readonly videoResultRepository: VideoResultRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   create(createVideoResultDto: CreateVideoResultDto) {
@@ -20,14 +24,31 @@ export class VideoResultService {
 
   async findAll(filterVideoResultDto: FilterVideoResultDto) { 
     const { page, limit, search, accountId, jobQueueId } = filterVideoResultDto;    
+
+    let where: Prisma.VideoResultWhereInput = {
+      ...(search && { videoUrl: { contains: search } }),
+      ...(accountId && { accountId: accountId }),
+    };
+
+    if (jobQueueId) {
+      const queue = await this.prisma.jobQueue.findUnique({
+        where: {
+          id: Number(jobQueueId),
+        },
+      });
+      console.log(queue);
+      if (queue) {
+        where = {
+          ...where,
+          description: queue.prompt,
+        };
+      }
+    }
+
     const result = await this.videoResultRepository.paginate({
       page,
       limit,
-      where: {
-        ...(search && { videoUrl: { contains: search } }),
-        ...(accountId && { accountId: accountId }),
-        ...(jobQueueId && { jobQueueId: jobQueueId }),
-      },
+      where,
       include: {
         account: true,
         jobQueue: true,

@@ -88,7 +88,7 @@ export class HailuoService {
     page.setDefaultTimeout(60000);
 
     // Set cookies if they exist  
-    if (account.cookie) {
+    if (account.cookie?.trim()) {
       try {
         // Validate that cookie is not empty or just whitespace
         const cookieStr = account.cookie.trim();
