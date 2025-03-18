@@ -381,6 +381,9 @@ export class HailuoService {
     
     try {
       const { browser: initializedBrowser, page: initializedPage } = await this.initializeBrowser(account);
+
+      console.log('initializedBrowser getVideosList');
+
       browser = initializedBrowser;
       page = initializedPage;
 
@@ -391,6 +394,7 @@ export class HailuoService {
       page.on('request', request => {
         request.continue();
       });
+
 
       // Create a promise to store API response
       const apiResponsePromise = new Promise((resolve) => {
@@ -413,6 +417,8 @@ export class HailuoService {
         waitUntil: ['domcontentloaded', 'networkidle0'],
         timeout: 60000,
       });
+
+      console.log('checking api response');
 
       // Wait for API response
       const apiResponse: any = await Promise.race([
