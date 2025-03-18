@@ -89,6 +89,7 @@ export class HailuoService {
 
     // Set cookies if they exist  
     if (account.cookie?.trim()) {
+      console.log('account.cookie: ', account.cookie);
       try {
         // Validate that cookie is not empty or just whitespace
         const cookieStr = account.cookie.trim();
