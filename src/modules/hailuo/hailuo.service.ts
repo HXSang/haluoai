@@ -39,12 +39,15 @@ export class HailuoService {
             this.logger.warn(`Permission denied removing ${path.basename(file)}. Trying with sudo...`);
             try {
               require('child_process').execSync(`sudo rm -f "${file}"`);
+              console.log(`Removed ${path.basename(file)} with sudo`);
               this.logger.log(`Removed ${path.basename(file)} with sudo`);
             } catch (sudoError) {
               this.logger.error(`Failed to remove ${path.basename(file)} even with sudo:`, sudoError);
+              console.log(`Failed to remove ${path.basename(file)} even with sudo:`, sudoError);  
             }
           } else {
             this.logger.error(`Error removing ${path.basename(file)}:`, error);
+            console.log(`Error removing ${path.basename(file)}:`, error);
           }
         }
       }
