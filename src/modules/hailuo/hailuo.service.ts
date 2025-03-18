@@ -22,6 +22,9 @@ export class HailuoService {
 
       const lockFile = path.join(profilePath, 'SingletonLock');
       const singletonFile = path.join(profilePath, 'SingletonCookie');
+
+      console.log('lockFile: ', lockFile);
+      console.log('singletonFile: ', singletonFile);
       
       // Remove lock files with proper error handling
       const filesToRemove = [lockFile, singletonFile];
