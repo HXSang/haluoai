@@ -3,10 +3,13 @@ import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Account, JobQueue } from '@prisma/client';
+import { PrismaService } from '@n-database/prisma/prisma.service';
 
 @Injectable()
 export class HailuoService {
   private readonly logger = new Logger(HailuoService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
 
   private async unlockChromeProfile(profilePath: string) {
     try {
@@ -59,7 +62,7 @@ export class HailuoService {
     await this.unlockChromeProfile(userDataDir);
 
     const browser = await puppeteer.launch({
-      headless: options.headless ?? true,
+      headless: options.headless ?? false,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -423,7 +426,13 @@ export class HailuoService {
       // Wait for API response
       const apiResponse: any = await Promise.race([
         apiResponsePromise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('API timeout')), 30000))
+        new Promise((_, reject) => setTimeout(() => {
+          this.prisma.account.update({
+            where: { id: account.id },
+            data: { isCookieActive: false },
+          });
+          reject(new Error('API timeout'));
+        }, 30000))
       ]);
 
       if (apiResponse && apiResponse.data && apiResponse.data.batchVideos) {
@@ -601,4 +610,59 @@ export class HailuoService {
     }
   }
 
+
+  // hailuoService
+  async getBrowserCookie(account: Account) {
+    let browser;
+    let page;
+
+    try {
+      this.logger.log(`Getting browser cookies for account ${account.email}`);
+      
+      // Initialize browser with the account's profile
+      const { browser: initializedBrowser, page: initializedPage } = await this.initializeBrowser(account);
+      browser = initializedBrowser;
+      page = initializedPage;
+
+      // Navigate to main site to ensure cookies are loaded
+      await page.goto('https://hailuoai.video/', {
+        waitUntil: ['domcontentloaded', 'networkidle0'],
+        timeout: 60000,
+      });
+
+      // Wait a bit to make sure all cookies are set
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Get all cookies
+      const cookies = await page.cookies();
+      this.logger.log(`Retrieved ${cookies.length} cookies for account ${account.email}`);
+
+      // Format cookies the same way we do in handleGoogleLogin
+      const formattedCookies = cookies.map((cookie) => ({
+        ...cookie,
+        domain: cookie.domain || '.hailuoai.video',
+        path: cookie.path || '/',
+      }));
+
+      return {
+        success: true,
+        cookies: JSON.stringify(formattedCookies),
+        message: 'Successfully retrieved cookies from browser'
+      };
+    } catch (error) {
+      this.logger.error(`Error getting browser cookies for ${account.email}:`, error);
+      return {
+        success: false,
+        cookies: null,
+        message: `Failed to get browser cookies: ${error.message}`
+      };
+    } finally {
+      // Ensure browser is closed to free resources
+      if (browser) {
+        await browser.close().catch((e) => {
+          this.logger.error('Error closing browser:', e);
+        });
+      }
+    }
+  } 
 }

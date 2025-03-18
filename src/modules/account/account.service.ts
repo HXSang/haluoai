@@ -131,6 +131,35 @@ export class AccountService {
   async update(id: number, updateAccountDto: UpdateAccountDto) {
     return await this.accountRepository.update(id, updateAccountDto);
   }
+
+  async setCookieActive(id: number, isActive: boolean) {
+    return await this.accountRepository.update(id, {
+      isCookieActive: isActive,
+    });
+  } 
+
+  async getBrowserCookie(id: number) {
+    const account = await this.accountRepository.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
+    const cookie = await this.hailouService.getBrowserCookie(account);
+
+    // save cookie to database
+    await this.accountRepository.update(account.id, {
+      cookie: cookie.cookies,
+      lastLoginAt: new Date(),
+      isCookieActive: true,
+    });
+
+    return cookie;
+  } 
 }
 
 

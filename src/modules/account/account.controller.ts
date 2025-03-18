@@ -50,4 +50,9 @@ export class AccountController {
   syncAccountVideos(@Param('accountId') accountId: string) {
     return this.accountService.syncAccountVideos(Number(accountId));
   }
+
+  @Post('/:id/get-browser-cookie')
+  getBrowserCookie(@Param('id') id: string) {
+    return this.accountService.getBrowserCookie(+id);
+  }
 }

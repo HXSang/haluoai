@@ -122,13 +122,13 @@ export class JobQueueService {
     }
 
     // if account have no cookie, then we need to return failed
-    if (!account.cookie) {
-      await this.markAsFailed(id);
-      return {
-        success: false,
-        message: 'Account has no cookie',
-      };
-    }
+    // if (!account.cookie) {
+    //   await this.markAsFailed(id);
+    //   return {
+    //     success: false,
+    //     message: 'Account has no cookie',
+    //   };
+    // }
 
     console.log(`[ProcessJob] Processing job ${id} for account ${account.email}`);
 
