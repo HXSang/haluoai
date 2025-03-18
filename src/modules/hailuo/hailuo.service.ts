@@ -8,7 +8,56 @@ import { Account, JobQueue } from '@prisma/client';
 export class HailuoService {
   private readonly logger = new Logger(HailuoService.name);
 
+  private async unlockChromeProfile(profilePath: string) {
+    try {
+      // Ensure profile directory exists
+      if (!fs.existsSync(profilePath)) {
+        fs.mkdirSync(profilePath, { recursive: true });
+        this.logger.log('Created profile directory');
+      }
+
+      const lockFile = path.join(profilePath, 'SingletonLock');
+      const singletonFile = path.join(profilePath, 'SingletonCookie');
+      
+      // Remove lock files with proper error handling
+      const filesToRemove = [lockFile, singletonFile];
+      for (const file of filesToRemove) {
+        try {
+          if (fs.existsSync(file)) {
+            fs.chmodSync(file, 0o666); // Ensure we have write permissions
+            fs.unlinkSync(file);
+            this.logger.log(`Removed ${path.basename(file)}`);
+          }
+        } catch (error) {
+          if (error.code === 'EACCES') {
+            // Handle permission denied error
+            this.logger.warn(`Permission denied removing ${path.basename(file)}. Trying with sudo...`);
+            try {
+              require('child_process').execSync(`sudo rm -f "${file}"`);
+              this.logger.log(`Removed ${path.basename(file)} with sudo`);
+            } catch (sudoError) {
+              this.logger.error(`Failed to remove ${path.basename(file)} even with sudo:`, sudoError);
+            }
+          } else {
+            this.logger.error(`Error removing ${path.basename(file)}:`, error);
+          }
+        }
+      }
+
+      // Set proper permissions on profile directory
+      fs.chmodSync(profilePath, 0o755);
+    } catch (error) {
+      this.logger.error('Error managing Chrome profile:', error);
+      throw new Error(`Failed to manage Chrome profile: ${error.message}`);
+    }
+  }
+
   private async initializeBrowser(account: Account, options: { headless?: boolean } = {}) {
+    const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
+    
+    // Unlock the profile if it's locked
+    await this.unlockChromeProfile(userDataDir);
+
     const browser = await puppeteer.launch({
       headless: options.headless ?? false,
       args: [
@@ -24,7 +73,7 @@ export class HailuoService {
       ],
       defaultViewport: null,
       devtools: true,
-      userDataDir: path.join(process.cwd(), `browser-data-${account.id}`),
+      userDataDir,
     });
 
     const page = await browser.newPage();
