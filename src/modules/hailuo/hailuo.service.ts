@@ -53,6 +53,7 @@ export class HailuoService {
       fs.chmodSync(profilePath, 0o755);
     } catch (error) {
       this.logger.error('Error managing Chrome profile:', error);
+      console.log('Error managing Chrome profile:', error);
       throw new Error(`Failed to manage Chrome profile: ${error.message}`);
     }
   }
@@ -96,7 +97,6 @@ export class HailuoService {
 
     // Set cookies if they exist  
     if (account.cookie?.trim()) {
-      console.log('account.cookie: ', account.cookie);
       try {
         // Validate that cookie is not empty or just whitespace
         const cookieStr = account.cookie.trim();
