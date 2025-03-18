@@ -61,8 +61,10 @@ export class HailuoService {
     // Unlock the profile if it's locked
     await this.unlockChromeProfile(userDataDir);
 
+    const headless = options.headless ?? process.env.APP_URL?.includes('localhost') ? false : true;
+
     const browser = await puppeteer.launch({
-      headless: options.headless ?? false,
+      headless: headless,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
