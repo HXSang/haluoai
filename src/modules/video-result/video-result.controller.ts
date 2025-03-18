@@ -22,7 +22,7 @@ export class VideoResultController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.videoResultService.findOne(+id);
+    return this.videoResultService.findOne(+id);  
   }
 
   @Patch(':id')

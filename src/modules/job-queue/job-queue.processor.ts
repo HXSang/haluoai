@@ -10,6 +10,7 @@ export class JobQueueProcessor {
   private readonly logger = new Logger(JobQueueProcessor.name);
   private isProcessing = false;
   private isGettingVideos = false;
+  private isActiveJobQueue = process.env.ACTIVE_JOB_QUEUE === 'true';
   constructor(
     private readonly jobQueueService: JobQueueService,
     private readonly hailouService: HailuoService,
@@ -19,7 +20,7 @@ export class JobQueueProcessor {
 
   @Cron(CronExpression.EVERY_30_SECONDS)
   async processJobs() {
-    if (this.isProcessing) {
+    if (!this.isActiveJobQueue || this.isProcessing) {
       return;
     }
 
@@ -65,7 +66,7 @@ export class JobQueueProcessor {
   //job run getVideosList
   @Cron(CronExpression.EVERY_30_SECONDS)
   async getVideosList() {
-    if (this.isGettingVideos) {
+    if (!this.isActiveJobQueue || this.isGettingVideos) {
       return;
     }
     this.isGettingVideos = true;
@@ -76,16 +77,18 @@ export class JobQueueProcessor {
 
       for (const account of accounts) {
         const videosResponse = await this.hailouService.getVideosList(account);
-
+        console.log("Videos response: ", videosResponse);
         if (videosResponse.success && videosResponse.data) {
           // Create video results in database
           const createdVideos = await Promise.all(
             videosResponse.data.map(async (video) => {
-              const videoExist = await this.videoResultService.findOne(
-                video.id,
-              );
+              const videoExist = await this.videoResultService.findFirst({
+                videoId: video.id,
+                accountId: account.id,
+              });
               if (videoExist) {
-                return videoExist;
+                // update video result
+                return await this.videoResultService.update(videoExist.id, video);
               }
               return await this.videoResultService.create(video);
             }),

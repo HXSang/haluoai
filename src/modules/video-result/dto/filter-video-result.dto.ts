@@ -18,4 +18,9 @@ export class FilterVideoResultDto extends PaginationDto {
   @IsOptional()
   @IsNumber()
   jobQueueId?: number;  
+
+  @ApiProperty({ description: 'Search by video id', example: '1234567890' })
+  @IsOptional()
+  @IsString()
+  videoId?: string;
 }

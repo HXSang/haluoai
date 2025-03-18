@@ -3,16 +3,14 @@ import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Account, JobQueue } from '@prisma/client';
-import { AccountService } from '@n-modules/account/account.service';
 
 @Injectable()
 export class HailuoService {
   private readonly logger = new Logger(HailuoService.name);
-  private readonly cookiesPath = path.join(process.cwd(), 'cookies.json');
 
   private async initializeBrowser(account: Account, options: { headless?: boolean } = {}) {
     const browser = await puppeteer.launch({
-      headless: options.headless ?? false,
+      headless: options.headless ?? true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',

@@ -11,7 +11,11 @@ export class VideoResultService {
   ) {}
 
   create(createVideoResultDto: CreateVideoResultDto) {
-    return 'This action adds a new videoResult';
+    return this.videoResultRepository.create(createVideoResultDto);
+  }
+
+  findOne(id: number) {
+    return this.videoResultRepository.findById(id);
   }
 
   async findAll(filterVideoResultDto: FilterVideoResultDto) { 
@@ -35,15 +39,21 @@ export class VideoResultService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} videoResult`;
+  findFirst(filterVideoResultDto: FilterVideoResultDto) {
+    const { accountId, jobQueueId } = filterVideoResultDto;
+    return this.videoResultRepository.findFirst({
+      where: {
+        ...(accountId && { accountId: accountId }),
+        ...(jobQueueId && { jobQueueId: jobQueueId }),
+      },
+    });
   }
 
   update(id: number, updateVideoResultDto: UpdateVideoResultDto) {
-    return `This action updates a #${id} videoResult`;
+    return this.videoResultRepository.update(id, updateVideoResultDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} videoResult`;
+    return this.videoResultRepository.delete(id);
   }
 }
