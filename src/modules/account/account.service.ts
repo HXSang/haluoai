@@ -19,15 +19,21 @@ export class AccountService {
     private readonly accountRepository: AccountRepository,
     private readonly videoResultService: VideoResultService,
     private readonly hailouService: HailuoService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
   ) {}
 
   async findAll() {
     return await this.accountRepository.findMany();
-  } 
+  }
 
   async findActiveAccounts() {
     return await this.accountRepository.findMany({
+      select: {
+        id: true,
+        email: true,
+        isActive: true,
+        isCookieActive: true,
+      },
       where: {
         isActive: true,
         isCookieActive: true,
@@ -44,7 +50,7 @@ export class AccountService {
     if (!account) {
       throw new Error('Account not found');
     }
-    
+
     try {
       const result = await this.hailouService.handleGoogleLogin(account);
 
@@ -62,8 +68,6 @@ export class AccountService {
     }
   }
 
-  
-
   // get videos list of account
   async syncAccountVideos(accountId: number) {
     const account = await this.accountRepository.findUnique({
@@ -73,21 +77,29 @@ export class AccountService {
     });
     if (!account) {
       throw new Error('Account not found');
-    } 
+    }
     const videosResponse = await this.hailouService.getVideosList(account);
-    
+
     if (videosResponse.success && videosResponse.data) {
       // Create video results in database
       const createdVideos = await Promise.all(
         videosResponse.data.map(async (video) => {
+          // exist video result
+          const existVideo = await this.videoResultService.findFirst({
+            videoId: video.id,
+          });
+          if (existVideo) {
+            // update video result
+            return await this.videoResultService.update(existVideo.id, video);
+          }
           return await this.videoResultService.create(video);
-        })
+        }),
       );
 
       return {
         success: true,
         data: createdVideos,
-        message: 'Videos synced successfully'
+        message: 'Videos synced successfully',
       };
     }
 
@@ -136,7 +148,7 @@ export class AccountService {
     return await this.accountRepository.update(id, {
       isCookieActive: isActive,
     });
-  } 
+  }
 
   async getBrowserCookie(id: number) {
     const account = await this.accountRepository.findUnique({
@@ -159,7 +171,7 @@ export class AccountService {
     });
 
     return cookie;
-  } 
+  }
 
   // test cookie
   async testCookie(id: number) {
@@ -178,5 +190,3 @@ export class AccountService {
     return cookie;
   }
 }
-
-

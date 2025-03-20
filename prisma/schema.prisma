@@ -175,7 +175,7 @@ model VideoResult {
   description String  @map("description")
   coverUrl  String    @map("cover_url")
   videoUrl  String    @map("video_url")
-  downloadUrl String  @map("download_url")
+  downloadUrl String?  @map("download_url")
   status    Int       @map("status")
   width     Int       @map("width")
   height    Int       @map("height")

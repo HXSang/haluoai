@@ -1,3 +1,6 @@
-2025/03/20-08:05:27.310 a9711 Reusing MANIFEST /home/ubuntu/hailuoai/browser-data-3/Default/Session Storage/MANIFEST-000001
-2025/03/20-08:05:27.327 a9711 Recovering log #56
-2025/03/20-08:05:27.339 a9711 Reusing old log /home/ubuntu/hailuoai/browser-data-3/Default/Session Storage/000056.log 
+2025/03/20-15:21:16.952 3003 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-3/Default/Session Storage/MANIFEST-000001
+2025/03/20-15:21:16.953 3003 Recovering log #7
+2025/03/20-15:21:16.955 3003 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-3/Default/Session Storage/000007.log 
+2025/03/20-15:21:30.695 5103 Level-0 table #11: started
+2025/03/20-15:21:30.706 5103 Level-0 table #11: 13568 bytes OK
+2025/03/20-15:21:30.747 5103 Delete type=0 #7

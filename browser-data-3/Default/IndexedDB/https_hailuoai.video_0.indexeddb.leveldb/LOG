@@ -1,21 +1,7 @@
-2025/03/20-08:05:29.725 a96e3 Reusing MANIFEST /home/ubuntu/hailuoai/browser-data-3/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
-2025/03/20-08:05:29.725 a96e3 Recovering log #589
-2025/03/20-08:05:29.725 a96e3 Reusing old log /home/ubuntu/hailuoai/browser-data-3/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000589.log 
-2025/03/20-08:05:29.735 a96e3 Delete type=2 #460
-2025/03/20-08:05:30.583 a96ec Level-0 table #591: started
-2025/03/20-08:05:30.588 a96ec Level-0 table #591: 4477 bytes OK
-2025/03/20-08:05:30.592 a96ec Delete type=0 #589
-2025/03/20-08:05:30.597 a96ed Manual compaction at level-0 from '\x00\x8a\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x8b\x00\x00\x00' @ 0 : 0; will stop at '\x00\x8a\x00\x00\x05' @ 7479 : 1
-2025/03/20-08:05:30.597 a96ed Compacting 1@0 + 1@1 files
-2025/03/20-08:05:30.603 a96ed Generated table #592@0: 55 keys, 3576 bytes
-2025/03/20-08:05:30.603 a96ed Compacted 1@0 + 1@1 files => 3576 bytes
-2025/03/20-08:05:30.607 a96ed compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/03/20-08:05:30.608 a96ed Delete type=2 #591
-2025/03/20-08:05:30.608 a96e3 Manual compaction at level-0 from '\x00\x8a\x00\x00\x05' @ 7479 : 1 .. '\x00\x8b\x00\x00\x00' @ 0 : 0; will stop at (end)
-2025/03/20-08:06:48.667 a96e4 Compacting 1@1 + 1@2 files
-2025/03/20-08:06:48.672 a96e4 Generated table #593@1: 38 keys, 3460 bytes
-2025/03/20-08:06:48.672 a96e4 Compacted 1@1 + 1@2 files => 3460 bytes
-2025/03/20-08:06:48.675 a96e4 compacted to: files[ 0 0 1 0 0 0 0 ]
-2025/03/20-08:06:48.675 a96e4 Delete type=2 #9
-2025/03/20-08:06:48.675 a96e4 Delete type=2 #592
-2025/03/20-08:06:48.675 a96e4 Delete type=2 #464
+2025/03/20-15:21:18.806 a803 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-3/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/03/20-15:21:18.807 a803 Recovering log #4
+2025/03/20-15:21:18.807 a803 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-3/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000004.log 
+2025/03/20-15:21:18.844 8a03 Level-0 table #8: started
+2025/03/20-15:21:18.847 8a03 Level-0 table #8: 1881 bytes OK
+2025/03/20-15:21:18.855 8a03 Delete type=0 #4
+2025/03/20-15:21:18.856 a803 Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)

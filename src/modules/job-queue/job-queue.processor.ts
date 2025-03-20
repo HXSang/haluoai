@@ -73,33 +73,10 @@ export class JobQueueProcessor {
     try {
       const accounts = await this.accountService.findActiveAccounts();
 
-      console.log("Found accounts: ", accounts.length);
-
       for (const account of accounts) {
-        const videosResponse = await this.hailouService.getVideosList(account);
-        if (videosResponse.success && videosResponse.data) {
-          // Create video results in database
-          const createdVideos = await Promise.all(
-            videosResponse.data.map(async (video) => {
-              const videoExist = await this.videoResultService.findFirst({
-                videoId: video.id,
-                accountId: account.id,
-              });
-              if (videoExist) {
-                // update video result
-                return await this.videoResultService.update(videoExist.id, video);
-              }
-              return await this.videoResultService.create(video);
-            }),
-          );
-
-          return {
-            success: true,
-            data: createdVideos,
-            message: 'Videos synced successfully',
-          };
-        }
+        await this.accountService.syncAccountVideos(account.id);
       }
+      
     } catch (error) {
       this.logger.error(`Error in getVideosList: ${error.message}`);
     } finally {
