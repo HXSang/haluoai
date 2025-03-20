@@ -125,26 +125,95 @@ export class HailuoService {
         // Parse browser profile
         const browserProfile: BrowserProfile = JSON.parse(account.browserProfile);
 
-        // Set user agent from browserProfile if available
-        if (browserProfile.browserFingerprint?.userAgent) {
-          await page.setUserAgent(browserProfile.browserFingerprint.userAgent);
-        } else {
-          // Set default user agent
-          await page.setUserAgent(
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-          );
+        // Set browser fingerprint
+        await page.setUserAgent(browserProfile.browserFingerprint.userAgent);
+
+        // Navigate to create page first to set up the page context
+        await page.goto('https://hailuoai.video/create', {
+          waitUntil: ['domcontentloaded', 'networkidle0'],
+          timeout: 60000,
+        });
+
+        // Set cookies
+        try {
+          if (browserProfile.cookies && browserProfile.cookies.length > 0) {
+            await page.setCookie(...browserProfile.cookies);
+            this.logger.log(`Set ${browserProfile.cookies.length} cookies from browser profile`);
+          }
+        } catch (cookieError) {
+          this.logger.error(`Failed to set cookies: ${cookieError.message}`);
         }
 
-        // Navigate to a page to set up browser context
-        await page.goto('about:blank');
-
-        // Set cookies from browserProfile
-        if (browserProfile.cookies && browserProfile.cookies.length > 0) {
-          await page.setCookie(...browserProfile.cookies);
-          this.logger.log(`Set ${browserProfile.cookies.length} cookies from browser profile`);
+        // Restore localStorage
+        try {
+          if (browserProfile.localStorage) {
+            await page.evaluate((data) => {
+              Object.entries(data).forEach(([key, value]) => {
+                window.localStorage.setItem(key, value as string);
+              });
+            }, browserProfile.localStorage);
+            this.logger.log(`Restored ${Object.keys(browserProfile.localStorage).length} localStorage items`);
+          }
+        } catch (localStorageError) {
+          this.logger.error(`Failed to restore localStorage: ${localStorageError.message}`);
         }
 
-        // Will restore localStorage and sessionStorage after navigating to the actual page
+        // Restore sessionStorage
+        try {
+          if (browserProfile.sessionStorage) {
+            await page.evaluate((data) => {
+              Object.entries(data).forEach(([key, value]) => {
+                window.sessionStorage.setItem(key, value as string);
+              });
+            }, browserProfile.sessionStorage);
+            this.logger.log(`Restored ${Object.keys(browserProfile.sessionStorage).length} sessionStorage items`);
+          }
+        } catch (sessionStorageError) {
+          this.logger.error(`Failed to restore sessionStorage: ${sessionStorageError.message}`);
+        }
+
+        // Restore IndexedDB data
+        try {
+          if (browserProfile.indexedDB && browserProfile.indexedDB.databases.length > 0) {
+            await page.evaluate((data) => {
+              // Note: IndexedDB data restoration is limited due to browser security
+              // We can only detect if databases exist
+              console.log('IndexedDB databases:', data.databases);
+            }, browserProfile.indexedDB);
+            this.logger.log(`Detected ${browserProfile.indexedDB.databases.length} IndexedDB databases`);
+          }
+        } catch (indexedDBError) {
+          this.logger.error(`Failed to restore IndexedDB: ${indexedDBError.message}`);
+        }
+
+        // Restore Service Workers
+        try {
+          if (browserProfile.serviceWorkers && browserProfile.serviceWorkers.length > 0) {
+            await page.evaluate((workers) => {
+              // Note: Service Workers can't be directly restored
+              // We can only detect if they were previously registered
+              console.log('Service Workers:', workers);
+            }, browserProfile.serviceWorkers);
+            this.logger.log(`Detected ${browserProfile.serviceWorkers.length} Service Workers`);
+          }
+        } catch (serviceWorkerError) {
+          this.logger.error(`Failed to restore Service Workers: ${serviceWorkerError.message}`);
+        }
+
+        // Restore Cache Storage
+        try {
+          if (browserProfile.cacheStorage && Object.keys(browserProfile.cacheStorage).length > 0) {
+            await page.evaluate((cacheData) => {
+              // Note: Cache Storage can't be directly restored
+              // We can only detect if caches existed
+              console.log('Cache Storage:', cacheData);
+            }, browserProfile.cacheStorage);
+            this.logger.log(`Detected ${Object.keys(browserProfile.cacheStorage).length} Cache Storage entries`);
+          }
+        } catch (cacheStorageError) {
+          this.logger.error(`Failed to restore Cache Storage: ${cacheStorageError.message}`);
+        }
+
         return { browser, page, browserProfile };
       } catch (error) {
         this.logger.error('Error initializing browser with profile:', error);
