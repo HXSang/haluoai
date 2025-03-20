@@ -25,7 +25,7 @@ export class HailuoService {
 
       console.log('lockFile: ', lockFile);
       console.log('singletonFile: ', singletonFile);
-      
+
       // Remove lock files with proper error handling
       const filesToRemove = [lockFile, singletonFile];
       for (const file of filesToRemove) {
@@ -68,7 +68,7 @@ export class HailuoService {
     const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
     
     // Unlock the profile if it's locked
-    await this.unlockChromeProfile(userDataDir);
+    // await this.unlockChromeProfile(userDataDir);
 
     const headless = options.headless ?? process.env.APP_URL?.includes('localhost') ? false : true;
 
@@ -442,6 +442,24 @@ export class HailuoService {
 
       if (!isLoggedIn) {
         console.log('User is not logged in');
+        
+        // Take a screenshot when login error is detected
+        try {
+          const screenshotPath = `login-error-${Date.now()}.png`;
+          await page.screenshot({ path: screenshotPath });
+          console.log(`Login error screenshot saved to ${screenshotPath}`);
+          this.logger.log(`Login error screenshot saved to ${screenshotPath}`);
+        } catch (screenshotError) {
+          console.error('Failed to take login error screenshot:', screenshotError);
+          this.logger.error('Failed to take login error screenshot:', screenshotError);
+        }
+        
+        // Update account cookie status
+        await this.prisma.account.update({
+          where: { id: account.id },
+          data: { isCookieActive: false },
+        });
+        
         throw new Error('User is not logged in - please login first');
       }
 
@@ -494,6 +512,19 @@ export class HailuoService {
 
     } catch (error) {
       this.logger.error('Error getting videos list:', error);
+      
+      // Take a screenshot for any error if page is available
+      if (page && !page.isClosed()) {
+        try {
+          const screenshotPath = `getvideos-error-${Date.now()}.png`;
+          await page.screenshot({ path: screenshotPath });
+          console.log(`Error screenshot saved to ${screenshotPath}`);
+          this.logger.log(`Error screenshot saved to ${screenshotPath}`);
+        } catch (screenshotError) {
+          console.error('Failed to take error screenshot:', screenshotError);
+        }
+      }
+      
       throw new Error(`Failed to get videos list: ${error.message}`);
     } finally {
       if (browser) {
