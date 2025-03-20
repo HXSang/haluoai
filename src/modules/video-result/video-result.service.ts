@@ -68,11 +68,13 @@ export class VideoResultService {
   }
 
   findFirst(filterVideoResultDto: FilterVideoResultDto) {
-    const { accountId, jobQueueId } = filterVideoResultDto;
+    const { accountId, jobQueueId, videoUrl, videoId } = filterVideoResultDto;
     return this.videoResultRepository.findFirst({
       where: {
         ...(accountId && { accountId: accountId }),
         ...(jobQueueId && { jobQueueId: jobQueueId }),
+        ...(videoUrl && { videoUrl: videoUrl }),
+        ...(videoId && { videoId: videoId }),
       },
     });
   }
