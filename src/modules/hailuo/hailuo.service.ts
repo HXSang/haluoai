@@ -691,7 +691,8 @@ export class HailuoService {
               createType: asset.createType,
               promptImgUrl: asset.promptImgURL,
               extra: asset.extra,
-              accountId: account.id
+              accountId: account.id,
+              createTime: asset.createTime,
             };
             videoResults.push(videoResult);
           }

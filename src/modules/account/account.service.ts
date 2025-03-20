@@ -87,7 +87,7 @@ export class AccountService {
       const createdVideos = await Promise.all(
         videosResponse.data.map(async (video) => {
           // exist video result
-          console.log('Checking if video exists: ', video.id, video.url);
+          console.log('Checking if video exists: ', video.videoId, video.videoUrl);
           const existVideo = await this.videoResultRepository.findFirst({
             where: {
               videoId: video.videoId,
