@@ -64,7 +64,7 @@ export class JobQueueProcessor {
   }
 
   //job run getVideosList
-  // @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_MINUTE)
   async getVideosList() {
     if (!this.isActiveJobQueue || this.isGettingVideos) {
       return;
@@ -76,7 +76,7 @@ export class JobQueueProcessor {
       for (const account of accounts) {
         await this.accountService.syncAccountVideos(account.id);
       }
-      
+
     } catch (error) {
       this.logger.error(`Error in getVideosList: ${error.message}`);
     } finally {
