@@ -238,6 +238,40 @@ export class HailuoService {
         await this.restoreBrowserProfile(page, browserProfile);
       }
 
+      // Kiểm tra xem đã đăng nhập hay chưa
+      console.log('Checking if already logged in...');
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Wait a bit for page to settle
+      
+      const isAlreadyLoggedIn = await page.evaluate(() => {
+        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
+        return !!avatarImg;
+      });
+      
+      console.log(`Already logged in: ${isAlreadyLoggedIn}`);
+      
+      // Nếu đã đăng nhập rồi, lấy browser profile và trả về
+      if (isAlreadyLoggedIn) {
+        console.log('User is already logged in, collecting browser profile without re-login');
+        
+        // Refresh the page to ensure we have the latest state
+        await page.reload({ waitUntil: 'networkidle0' });
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        
+        // Get a complete browser profile
+        const browserProfileResult = await this.getBrowserCookie(account);
+        
+        // Close browser before returning
+        if (browser) {
+          await browser.close().catch(() => {});
+        }
+        
+        return {
+          success: true,
+          browserProfile: browserProfileResult.browserProfile,
+          message: 'Already logged in, browser profile saved',
+        };
+      }
+
       // Wait for content to be truly ready
       try {
         await page.waitForSelector('#video-user-component', { timeout: 10000 });
@@ -246,6 +280,9 @@ export class HailuoService {
         await page.reload({ waitUntil: ['domcontentloaded', 'networkidle0'] });
         await new Promise((resolve) => setTimeout(resolve, 5000));
       }
+
+      // Tiếp tục quy trình đăng nhập bình thường nếu chưa đăng nhập
+      console.log('User is not logged in, proceeding with Google login flow...');
 
       // Click Sign In
       await page.waitForSelector('#video-user-component');
