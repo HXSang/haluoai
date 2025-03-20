@@ -24,4 +24,9 @@ export class FilterVideoResultDto extends PaginationDto {
   @IsOptional()
   @IsString()
   videoId?: string;
+
+  @ApiProperty({ description: 'Search by video url', example: 'https://www.example.com/video.mp4' })
+  @IsOptional()
+  @IsString()
+  videoUrl?: string;
 }

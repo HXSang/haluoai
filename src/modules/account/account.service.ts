@@ -87,6 +87,7 @@ export class AccountService {
           // exist video result
           const existVideo = await this.videoResultService.findFirst({
             videoId: video.id,
+            videoUrl: video.url,
           });
           if (existVideo) {
             // update video result
