@@ -1,6 +1,7 @@
-2025/03/20-08:01:30.080 a91dd Creating DB /home/ubuntu/hailuoai/browser-data-1/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb since it was missing.
-2025/03/20-08:01:30.101 a91dd Reusing MANIFEST /home/ubuntu/hailuoai/browser-data-1/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
-2025/03/20-08:01:30.479 a91dd Level-0 table #5: started
-2025/03/20-08:01:30.487 a91dd Level-0 table #5: 1268 bytes OK
-2025/03/20-08:01:30.492 a91dd Delete type=0 #3
-2025/03/20-08:01:30.499 a91e1 Manual compaction at level-0 from '\x00\x01\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x02\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/03/20-08:04:19.224 a950c Reusing MANIFEST /home/ubuntu/hailuoai/browser-data-1/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/03/20-08:04:19.225 a950c Recovering log #4
+2025/03/20-08:04:19.225 a950c Reusing old log /home/ubuntu/hailuoai/browser-data-1/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000004.log 
+2025/03/20-08:04:19.327 a950c Level-0 table #8: started
+2025/03/20-08:04:19.332 a950c Level-0 table #8: 1952 bytes OK
+2025/03/20-08:04:19.343 a950c Delete type=0 #4
+2025/03/20-08:04:19.346 a950d Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)
