@@ -46,16 +46,16 @@ export class AccountService {
     }
     
     try {
-      const cookies = await this.hailouService.handleGoogleLogin(account);
+      const result = await this.hailouService.handleGoogleLogin(account);
 
-      // save cookies to database
+      // save browser profile to database
       await this.accountRepository.update(account.id, {
-        cookie: cookies,
+        browserProfile: result.browserProfile,
         lastLoginAt: new Date(),
         isCookieActive: true,
       });
 
-      return cookies;
+      return result;
     } catch (error) {
       this.logger.error(`Login failed for account ${account.email}:`, error);
       throw new Error(`Login failed: ${error.message}`);

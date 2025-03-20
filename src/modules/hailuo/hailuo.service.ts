@@ -115,17 +115,43 @@ export class HailuoService {
 
     const page = await browser.newPage();
 
-    // Set user agent
-    await page.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    );
-
     // Set default timeouts
     page.setDefaultNavigationTimeout(60000);
     page.setDefaultTimeout(60000);
 
-    // Set cookies if they exist  
-    if (account.cookie?.trim()) {
+    // Check if browserProfile exists, use that instead of just cookies
+    if (account.browserProfile) {
+      try {
+        // Parse browser profile
+        const browserProfile: BrowserProfile = JSON.parse(account.browserProfile);
+
+        // Set user agent from browserProfile if available
+        if (browserProfile.browserFingerprint?.userAgent) {
+          await page.setUserAgent(browserProfile.browserFingerprint.userAgent);
+        } else {
+          // Set default user agent
+          await page.setUserAgent(
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          );
+        }
+
+        // Navigate to a page to set up browser context
+        await page.goto('about:blank');
+
+        // Set cookies from browserProfile
+        if (browserProfile.cookies && browserProfile.cookies.length > 0) {
+          await page.setCookie(...browserProfile.cookies);
+          this.logger.log(`Set ${browserProfile.cookies.length} cookies from browser profile`);
+        }
+
+        // Will restore localStorage and sessionStorage after navigating to the actual page
+        return { browser, page, browserProfile };
+      } catch (error) {
+        this.logger.error('Error initializing browser with profile:', error);
+        // Continue with basic initialization if profile fails
+      }
+    } else if (account.cookie?.trim()) {
+      // Legacy cookie method as fallback
       try {
         // Validate that cookie is not empty or just whitespace
         const cookieStr = account.cookie.trim();
@@ -159,6 +185,11 @@ export class HailuoService {
       }
     }
 
+    // Set default user agent if not set earlier
+    await page.setUserAgent(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    );
+
     return { browser, page };
   }
 
@@ -174,7 +205,7 @@ export class HailuoService {
     let popup;
 
     try {
-      const { browser: initializedBrowser, page: initializedPage } = await this.initializeBrowser(account);
+      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account);
       browser = initializedBrowser;
       page = initializedPage;
 
@@ -200,6 +231,11 @@ export class HailuoService {
           }
           await new Promise((resolve) => setTimeout(resolve, 5000));
         }
+      }
+
+      // Khôi phục browserProfile sau khi điều hướng nếu có
+      if (browserProfile) {
+        await this.restoreBrowserProfile(page, browserProfile);
       }
 
       // Wait for content to be truly ready
@@ -341,8 +377,8 @@ export class HailuoService {
       await page.reload({ waitUntil: 'networkidle0' });
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      // Now collect cookies
-      console.log('Collecting cookies...');
+      // Now collect full browser profile
+      console.log('Collecting browser profile...');
       const cookies = await page.cookies();
       console.log(`Found ${cookies.length} cookies`);
 
@@ -356,14 +392,8 @@ export class HailuoService {
         throw new Error('No cookies found after login');
       }
 
-      // Format cookies
-      const formattedCookies = cookies.map((cookie) => ({
-        ...cookie,
-        domain: cookie.domain || '.hailuoai.video',
-        path: cookie.path || '/',
-      }));
-
-      const cookieString = JSON.stringify(formattedCookies);
+      // Get a complete browser profile
+      const browserProfileResult = await this.getBrowserCookie(account);
 
       // Close browser before saving to database
       if (popup && !popup.isClosed()) {
@@ -375,8 +405,8 @@ export class HailuoService {
 
       return {
         success: true,
-        cookies: cookieString,
-        message: 'Login successful and cookies saved',
+        browserProfile: browserProfileResult.browserProfile,
+        message: 'Login successful and browser profile saved',
       };
     } catch (error) {
       // Log error before cleanup
@@ -410,13 +440,44 @@ export class HailuoService {
     }
   }
 
+  // Phương thức tiện ích để khôi phục localStorage và sessionStorage
+  private async restoreBrowserProfile(page: puppeteer.Page, browserProfile: BrowserProfile) {
+    // Khôi phục localStorage
+    try {
+      if (browserProfile.localStorage) {
+        await page.evaluate((data) => {
+          Object.entries(data).forEach(([key, value]) => {
+            window.localStorage.setItem(key, value as string);
+          });
+        }, browserProfile.localStorage);
+        this.logger.log(`Restored ${Object.keys(browserProfile.localStorage).length} localStorage items`);
+      }
+    } catch (localStorageError) {
+      this.logger.error(`Failed to restore localStorage: ${localStorageError.message}`);
+    }
+
+    // Khôi phục sessionStorage
+    try {
+      if (browserProfile.sessionStorage) {
+        await page.evaluate((data) => {
+          Object.entries(data).forEach(([key, value]) => {
+            window.sessionStorage.setItem(key, value as string);
+          });
+        }, browserProfile.sessionStorage);
+        this.logger.log(`Restored ${Object.keys(browserProfile.sessionStorage).length} sessionStorage items`);
+      }
+    } catch (sessionStorageError) {
+      this.logger.error(`Failed to restore sessionStorage: ${sessionStorageError.message}`);
+    }
+  }
+
   async getVideosList(account: Account) {
     let browser;
     let page;
     let videoResults = [];
     
     try {
-      const { browser: initializedBrowser, page: initializedPage } = await this.initializeBrowser(account);
+      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account);
 
       console.log('initializedBrowser getVideosList');
 
@@ -430,7 +491,6 @@ export class HailuoService {
       page.on('request', request => {
         request.continue();
       });
-
 
       // Create a promise to store API response
       const apiResponsePromise = new Promise((resolve) => {
@@ -453,6 +513,11 @@ export class HailuoService {
         waitUntil: ['domcontentloaded', 'networkidle0'],
         timeout: 60000,
       });
+
+      // Khôi phục browserProfile sau khi điều hướng nếu có
+      if (browserProfile) {
+        await this.restoreBrowserProfile(page, browserProfile);
+      }
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
@@ -577,7 +642,7 @@ export class HailuoService {
       }
 
       console.log('[ProcessJob] Initializing browser...');
-      const { browser: initializedBrowser, page: initializedPage } = await this.initializeBrowser(account);
+      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account);
       browser = initializedBrowser;
       page = initializedPage;
 
@@ -587,6 +652,11 @@ export class HailuoService {
         waitUntil: ['domcontentloaded', 'networkidle0'],
         timeout: 60000,
       });
+
+      // Khôi phục browserProfile sau khi điều hướng nếu có
+      if (browserProfile) {
+        await this.restoreBrowserProfile(page, browserProfile);
+      }
 
       // Wait for the upload element to be present
       console.log('[ProcessJob] Checking upload element selector...');

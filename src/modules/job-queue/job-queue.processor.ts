@@ -106,4 +106,16 @@ export class JobQueueProcessor {
       this.isGettingVideos = false;
     }
   }
+
+  // refresh browser profile
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async refreshBrowserProfile() { 
+    const accounts = await this.accountService.findActiveAccounts();
+
+    for (const account of accounts) {
+      await this.accountService.getBrowserCookie(account.id);
+    } 
+
+    this.logger.log('Browser profile refreshed successfully');  
+  }
 }

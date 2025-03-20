@@ -132,8 +132,6 @@ model Account {
   email     String    @map("email")
   password  String    @map("password")
   cookie    String?    @map("cookie")
-  localStorage String? @map("local_storage")
-  sessionStorage String? @map("session_storage")
   browserProfile String? @map("browser_profile")
   categories  String?    @map("categories")
   isCookieActive Boolean @default(false) @map("is_cookie_active")
