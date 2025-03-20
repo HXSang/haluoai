@@ -1,4 +1,0 @@
-2025/03/20-15:22:47.485 8503 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-2/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
-2025/03/20-15:22:47.485 8503 Recovering log #4
-2025/03/20-15:22:47.486 8503 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-2/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000004.log 
-2025/03/20-15:22:47.573 8903 Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)
