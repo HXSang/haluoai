@@ -6,7 +6,8 @@ import { PrismaModule } from '@n-database/prisma/prisma.module';
 import { AccountRepository } from './account.repository';
 import { HailuoModule } from '@n-modules/hailuo/hailuo.module';
 import { VideoResultModule } from '@n-modules/video-result/video-result.module';
-
+import { JobQueueModule } from '@n-modules/job-queue/job-queue.module';
+      
 @Module({
   imports: [PrismaModule, HailuoModule, VideoResultModule ],  
   controllers: [AccountController],

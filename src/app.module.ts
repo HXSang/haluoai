@@ -28,6 +28,8 @@ import { VideoResultModule } from './modules/video-result/video-result.module';
 import { JobQueueModule } from './modules/job-queue/job-queue.module';
 import { HailuoModule } from './modules/hailuo/hailuo.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 @Module({
   imports: [
@@ -63,7 +65,7 @@ import { UploadModule } from './modules/upload/upload.module';
       global: true,
       middleware: { mount: true },
     }),
-    AuthModule, UserModule, AccountModule, VideoResultModule, JobQueueModule, HailuoModule, UploadModule,
+    AuthModule, UserModule, AccountModule, VideoResultModule, JobQueueModule, HailuoModule, UploadModule, RolesModule, PermissionsModule,
   ],
   controllers: [AppController],
   providers: [

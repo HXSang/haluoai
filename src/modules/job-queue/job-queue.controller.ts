@@ -4,6 +4,8 @@ import { CreateJobQueueDto } from './dto/create-job-queue.dto';
 import { UpdateJobQueueDto } from './dto/update-job-queue.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { FilterJobQueueDto } from './dto/filter-job-queue.dto';
+import { AuthClaims, GetUser } from '@n-decorators';
+import { User } from '@prisma/client';
 
 @Controller('job-queue')
 @ApiTags('job-queue')
@@ -11,8 +13,9 @@ export class JobQueueController {
   constructor(private readonly jobQueueService: JobQueueService) {}
 
   @Post()
-  create(@Body() createJobQueueDto: CreateJobQueueDto) {
-    return this.jobQueueService.create(createJobQueueDto);
+  @AuthClaims()
+  create(@Body() createJobQueueDto: CreateJobQueueDto, @GetUser() user: User) {
+    return this.jobQueueService.create(createJobQueueDto, user);
   }
 
   @Get()

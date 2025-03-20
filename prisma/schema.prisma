@@ -53,6 +53,8 @@ model User {
   role                     Role?                     @relation("UserRole", fields: [roleId], references: [id])
   userRoles                UserRole[]
   refreshTokens            RefreshToken[]
+  jobQueues                JobQueue[] 
+  videoResults             VideoResult[]  
 
   @@map("users")
 }
@@ -157,12 +159,14 @@ model JobQueue {
   generatedTimes Int @map("generated_times") @default(0)
   accountId Int? @map("account_id")
   model Model? @map("model")
+  userId Int? @map("user_id")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   account Account? @relation(fields: [accountId], references: [id])
   videoResults VideoResult[]
+  user User? @relation(fields: [userId], references: [id])
 
   @@map("queues") 
 }
@@ -188,12 +192,14 @@ model VideoResult {
   extra     Json?     @map("extra")
   accountId Int?     @map("account_id")
   jobQueueId Int?     @map("job_queue_id")
+  creatorId Int?     @map("creator_id")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   jobQueue JobQueue? @relation(fields: [jobQueueId], references: [id])
   account Account? @relation(fields: [accountId], references: [id])
+  user User? @relation(fields: [creatorId], references: [id])
 
   @@map("video_results")
 }

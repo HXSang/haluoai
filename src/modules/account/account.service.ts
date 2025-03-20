@@ -5,7 +5,7 @@ import { AccountRepository } from './account.repository';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Account } from '@prisma/client';
+import { Account, JobQueue } from '@prisma/client';
 import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { PrismaService } from '@n-database/prisma/prisma.service';
 import { FilterAccountDto } from './dto/filter-account.dto';
@@ -71,7 +71,7 @@ export class AccountService {
   }
 
   // get videos list of account
-  async syncAccountVideos(accountId: number) {
+  async syncAccountVideos(accountId: number, availableJobQueue?: JobQueue[]) {
     const account = await this.accountRepository.findUnique({
       where: {
         id: accountId,
@@ -81,17 +81,21 @@ export class AccountService {
       throw new Error('Account not found');
     }
     const videosResponse = await this.hailouService.getVideosList(account);
+    
 
     if (videosResponse.success && videosResponse.data) {
       // Create video results in database
       const createdVideos = await Promise.all(
         videosResponse.data.map(async (video) => {
+          // find jobqueue promt match video description
+          const jobQueue = availableJobQueue.find(job => job.prompt.trim() === video.description.trim());
+          if (jobQueue && jobQueue?.userId){
+            video.creatorId = jobQueue.userId;
+          }
           // exist video result
-          console.log('Checking if video exists: ', video.videoId, video.videoUrl);
           const existVideo = await this.videoResultRepository.findFirst({
             where: {
               videoId: video.videoId,
-              videoUrl: video.videoUrl,
             },
           });
           if (existVideo) {

@@ -1,5 +1,8 @@
 import { AuthType, PrismaClient } from "@prisma/client";
 import * as bcrypt from 'bcryptjs';
+import { seedPermission } from "./seed/permission";
+import { seedRole } from "./seed/role";
+import { seedRolePermission } from "./seed/role-permission";
 // initialize Prisma Client
 const prisma = new PrismaClient();
 
@@ -86,6 +89,9 @@ async function seedUser() {
 }
 
 async function main() {
+    await seedPermission();
+    await seedRole();
+    await seedRolePermission();
     await seedAccount();
     await seedUser();
 }

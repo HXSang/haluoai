@@ -5,7 +5,9 @@ import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { AccountService } from '@n-modules/account/account.service';
 import { VideoResultService } from '@n-modules/video-result/video-result.service';
 import { AccountRepository } from '@n-modules/account/account.repository';
-
+import { QueueStatus } from '@prisma/client';
+import { JobQueueRepository } from './job-queue.repository';
+    
 @Injectable()
 export class JobQueueProcessor {
   private readonly logger = new Logger(JobQueueProcessor.name);
@@ -18,6 +20,7 @@ export class JobQueueProcessor {
     private readonly accountService: AccountService,
     private readonly accountRepository: AccountRepository,
     private readonly videoResultService: VideoResultService,
+    private readonly jobQueueRepository: JobQueueRepository,
   ) {}
 
   @Cron(CronExpression.EVERY_30_SECONDS)
@@ -96,12 +99,17 @@ export class JobQueueProcessor {
     this.isGettingVideos = true;
     try {
       const accounts = await this.accountService.findActiveAccounts();
-
+      const jobQueues = await this.jobQueueRepository.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 10,
+      });
       console.log('Found total accounts: ', accounts.length);
-
+      console.log('Found total jobQueues: ', jobQueues.length);
       for (const account of accounts) {
         console.log('Syncing videos for account: ', account.email);
-        await this.accountService.syncAccountVideos(account.id);
+        await this.accountService.syncAccountVideos(account.id, jobQueues);
       }
 
     } catch (error) {

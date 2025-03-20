@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobQueueDto } from './dto/create-job-queue.dto';
 import { UpdateJobQueueDto } from './dto/update-job-queue.dto';
 import { JobQueueRepository } from './job-queue.repository';
-import { Account, QueueStatus } from '@prisma/client';
+import { Account, QueueStatus, User } from '@prisma/client';
 import { FilterJobQueueDto } from './dto/filter-job-queue.dto';
 import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { AccountService } from '@n-modules/account/account.service';
@@ -15,13 +15,14 @@ export class JobQueueService {
     private readonly accountService: AccountService,  
   ) {}
 
-  async create(createJobQueueDto: CreateJobQueueDto) {
+  async create(createJobQueueDto: CreateJobQueueDto, user: User) {
     return this.jobQueueRepository.create({
       imageUrl: createJobQueueDto.imageUrl,
       prompt: createJobQueueDto.prompt,
       status: createJobQueueDto.status,
       generateTimes: createJobQueueDto.generateTimes,
       accountId: createJobQueueDto.accountId,
+      userId: user.id,
     });
   }
 
