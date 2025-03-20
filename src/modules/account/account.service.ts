@@ -11,6 +11,7 @@ import { PrismaService } from '@n-database/prisma/prisma.service';
 import { FilterAccountDto } from './dto/filter-account.dto';
 import { VideoResultService } from '@n-modules/video-result/video-result.service';
 import { CreateGAccountDto } from './dto/create-g-account.dto';
+import { VideoResultRepository } from '@n-modules/video-result/video-result.repository';
 @Injectable()
 export class AccountService {
   private readonly logger = new Logger(AccountService.name);
@@ -18,6 +19,7 @@ export class AccountService {
   constructor(
     private readonly accountRepository: AccountRepository,
     private readonly videoResultService: VideoResultService,
+    private readonly videoResultRepository: VideoResultRepository,
     private readonly hailouService: HailuoService,
     private readonly prisma: PrismaService,
   ) {}
@@ -85,9 +87,12 @@ export class AccountService {
       const createdVideos = await Promise.all(
         videosResponse.data.map(async (video) => {
           // exist video result
-          const existVideo = await this.videoResultService.findFirst({
-            videoId: video.id,
-            videoUrl: video.url,
+          console.log('Checking if video exists: ', video.id, video.url);
+          const existVideo = await this.videoResultRepository.findFirst({
+            where: {
+              videoId: video.videoId,
+              videoUrl: video.videoUrl,
+            },
           });
           if (existVideo) {
             // update video result

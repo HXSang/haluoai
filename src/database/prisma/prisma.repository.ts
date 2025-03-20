@@ -2,15 +2,15 @@ import { PrismaService } from '@n-database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { PrismaClient } from '@prisma/client/extension';
 
-export type findFirstQuery = Prisma.UserFindFirstArgs | Prisma.AccountFindFirstArgs | Prisma.JobQueueFindFirstArgs;
-export type findUniqueQuery = Prisma.UserFindUniqueArgs | Prisma.AccountFindUniqueArgs;
-export type countQuery = Prisma.UserCountArgs | Prisma.AccountCountArgs;
+export type findFirstQuery = Prisma.UserFindFirstArgs | Prisma.AccountFindFirstArgs | Prisma.JobQueueFindFirstArgs | Prisma.VideoResultFindFirstArgs;
+export type findUniqueQuery = Prisma.UserFindUniqueArgs | Prisma.AccountFindUniqueArgs | Prisma.VideoResultFindUniqueArgs | Prisma.JobQueueFindUniqueArgs;
+export type countQuery = Prisma.UserCountArgs | Prisma.AccountCountArgs | Prisma.VideoResultCountArgs | Prisma.JobQueueCountArgs;
 export type findManyQuery = Prisma.UserFindManyArgs | Prisma.JobQueueFindManyArgs | Prisma.VideoResultFindManyArgs | Prisma.AccountFindManyArgs ;
 export type updateQuery = Prisma.UserUpdateArgs | Prisma.JobQueueUpdateArgs | Prisma.VideoResultUpdateArgs | Prisma.AccountUpdateArgs;
 export type deleteQuery = Prisma.UserDeleteArgs | Prisma.JobQueueDeleteArgs | Prisma.VideoResultDeleteArgs | Prisma.AccountDeleteArgs;
 export type groupByQuery = Prisma.UserGroupByArgs | Prisma.JobQueueGroupByArgs | Prisma.VideoResultGroupByArgs;
 export type paginateQuery = { page: number, limit: number, [key: string]: any } & findManyQuery;
-export type createQuery = Prisma.UserCreateArgs | Prisma.AccountCreateArgs;
+export type createQuery = Prisma.UserCreateArgs | Prisma.AccountCreateArgs | Prisma.VideoResultCreateArgs;
 export type createManyQuery = Prisma.UserCreateManyArgs | Prisma.AccountCreateManyArgs;
 
 export type Pagination<T> = {
