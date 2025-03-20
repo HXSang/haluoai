@@ -78,6 +78,7 @@ export class JobQueueProcessor {
       console.log('Found total accounts: ', accounts.length);
 
       for (const account of accounts) {
+        console.log('Syncing videos for account: ', account.email);
         await this.accountService.syncAccountVideos(account.id);
       }
 
