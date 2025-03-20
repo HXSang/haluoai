@@ -54,7 +54,7 @@ export class VideoResultService {
         jobQueue: true,
       },
       orderBy: {
-        videoId: 'desc',
+        createTime: 'desc',
       },
     }); 
 

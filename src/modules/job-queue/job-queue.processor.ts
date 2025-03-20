@@ -4,6 +4,7 @@ import { JobQueueService } from './job-queue.service';
 import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { AccountService } from '@n-modules/account/account.service';
 import { VideoResultService } from '@n-modules/video-result/video-result.service';
+import { AccountRepository } from '@n-modules/account/account.repository';
 
 @Injectable()
 export class JobQueueProcessor {
@@ -15,6 +16,7 @@ export class JobQueueProcessor {
     private readonly jobQueueService: JobQueueService,
     private readonly hailouService: HailuoService,
     private readonly accountService: AccountService,
+    private readonly accountRepository: AccountRepository,
     private readonly videoResultService: VideoResultService,
   ) {}
 
@@ -35,6 +37,26 @@ export class JobQueueProcessor {
       }
 
       try {
+        // if job have account id should check account available
+        if (job.accountId) {
+          const account = await this.accountRepository.findFirst({
+            where: {
+              id: job.accountId,
+            },
+            select: {
+              isActive: true,
+            },
+          });
+          if (!account) { 
+            this.logger.log('Account not found');
+            return;
+          } 
+          if (!account.isActive) {
+            this.logger.log('Account not active');
+            return;
+          }
+        }
+
         await this.jobQueueService.markAsProcessing(job.id);
 
         await this.jobQueueService.process(job.id);
