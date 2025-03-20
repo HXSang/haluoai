@@ -131,4 +131,9 @@ export class JobQueueProcessor {
 
     this.logger.log('Browser profile refreshed successfully');  
   }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  async autoDeleteVideo() {
+    await this.videoResultService.autoDeleteVideo();
+  }
 }

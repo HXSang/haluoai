@@ -86,4 +86,24 @@ export class VideoResultService {
   remove(id: number) {
     return this.videoResultRepository.delete(id);
   }
+
+
+  // Tự động xoá các video tạo quá 15p mà vẫn chưa có result url
+  async autoDeleteVideo() {
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const videos = await this.videoResultRepository.findMany({
+      where: {
+        createTime: {
+          lte: fifteenMinutesAgo.toISOString(),
+        },
+        downloadUrl: null,
+      },
+    });
+
+    for (const video of videos) {
+      await this.videoResultRepository.delete(video.id);
+    }
+
+    console.log(`[AutoDeleteVideo] Deleted ${videos.length} videos`);
+  } 
 }
