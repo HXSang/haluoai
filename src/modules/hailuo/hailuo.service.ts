@@ -856,6 +856,20 @@ export class HailuoService {
 
     } catch (error) {
       console.error('[ProcessJob] Error:', error.message);
+      
+      // Take a screenshot if page is available
+      if (page && !page.isClosed()) {
+        try {
+          const screenshotPath = `processjob-error-${Date.now()}.png`;
+          await page.screenshot({ path: screenshotPath });
+          console.log(`[ProcessJob] Error screenshot saved to ${screenshotPath}`);
+          this.logger.log(`[ProcessJob] Error screenshot saved to ${screenshotPath}`);
+        } catch (screenshotError) {
+          console.error('[ProcessJob] Failed to take error screenshot:', screenshotError);
+          this.logger.error('[ProcessJob] Failed to take error screenshot:', screenshotError);
+        }
+      }
+      
       throw new Error(`Failed to upload image and create video: ${error.message}`);
     } finally {
       if (browser) {

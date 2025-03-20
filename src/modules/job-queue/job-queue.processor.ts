@@ -20,6 +20,7 @@ export class JobQueueProcessor {
 
   @Cron(CronExpression.EVERY_30_SECONDS)
   async processJobs() {
+    this.logger.log('processJobs at ' + new Date().toISOString());
     if (!this.isActiveJobQueue || this.isProcessing) {
       return;
     }
@@ -66,12 +67,15 @@ export class JobQueueProcessor {
   //job run getVideosList
   @Cron(CronExpression.EVERY_MINUTE)
   async getVideosList() {
+    this.logger.log('getVideosList at ' + new Date().toISOString());
     if (!this.isActiveJobQueue || this.isGettingVideos) {
       return;
     }
     this.isGettingVideos = true;
     try {
       const accounts = await this.accountService.findActiveAccounts();
+
+      console.log('Found total accounts: ', accounts.length);
 
       for (const account of accounts) {
         await this.accountService.syncAccountVideos(account.id);
@@ -87,6 +91,7 @@ export class JobQueueProcessor {
   // refresh browser profile
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async refreshBrowserProfile() { 
+    this.logger.log('refreshBrowserProfile at ' + new Date().toISOString());
     const accounts = await this.accountService.findActiveAccounts();
 
     for (const account of accounts) {
