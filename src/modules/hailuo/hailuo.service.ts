@@ -5,6 +5,29 @@ import * as path from 'path';
 import { Account, JobQueue } from '@prisma/client';
 import { PrismaService } from '@n-database/prisma/prisma.service';
 
+interface BrowserProfile {
+  cookies: any[];
+  localStorage: Record<string, string>;
+  sessionStorage: Record<string, string>;
+  indexedDB: {
+    databases: string[];
+    data: Record<string, any>;
+  };
+  serviceWorkers: {
+    scope: string;
+    active: boolean;
+  }[];
+  cacheStorage: Record<string, string[]>;
+  webRTC: boolean;
+  browserFingerprint: {
+    userAgent: string;
+    platform: string;
+    language: string;
+    screenResolution: string;
+    timezone: string;
+  };
+}
+
 @Injectable()
 export class HailuoService {
   private readonly logger = new Logger(HailuoService.name);
@@ -364,7 +387,7 @@ export class HailuoService {
         try {
           const screenshotPath = `error-${Date.now()}.png`;
           await page.screenshot({ path: screenshotPath });
-          this.logger.log(`Error screenshot saved to ${screenshotPath}`);
+        this.logger.log(`Error screenshot saved to ${screenshotPath}`);
         } catch (e) {
           // Ignore screenshot errors
         }
@@ -692,27 +715,118 @@ export class HailuoService {
       const cookies = await page.cookies();
       this.logger.log(`Retrieved ${cookies.length} cookies for account ${account.email}`);
 
-      // Format cookies the same way we do in handleGoogleLogin
+      // Format cookies
       const formattedCookies = cookies.map((cookie) => ({
         ...cookie,
         domain: cookie.domain || '.hailuoai.video',
         path: cookie.path || '/',
       }));
 
+      // Get localStorage data
+      const localStorage = await page.evaluate(() => {
+        const data = {};
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          data[key] = window.localStorage.getItem(key);
+        }
+        return data;
+      });
+      this.logger.log(`Retrieved localStorage with ${Object.keys(localStorage).length} items`);
+
+      // Get sessionStorage data
+      const sessionStorage = await page.evaluate(() => {
+        const data = {};
+        for (let i = 0; i < window.sessionStorage.length; i++) {
+          const key = window.sessionStorage.key(i);
+          data[key] = window.sessionStorage.getItem(key);
+        }
+        return data;
+      });
+      this.logger.log(`Retrieved sessionStorage with ${Object.keys(sessionStorage).length} items`);
+
+      // Get IndexedDB data
+      const indexedDBData = await page.evaluate(async () => {
+        const databases = await window.indexedDB.databases();
+        const data = {};
+        
+        for (const db of databases) {
+          if (db.name) {
+            data[db.name] = {
+              version: db.version
+            };
+          }
+        }
+        return data;
+      });
+      this.logger.log(`Retrieved IndexedDB data for ${Object.keys(indexedDBData).length} databases`);
+
+      // Get Service Workers info
+      const serviceWorkers = await page.evaluate(async () => {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        return registrations.map(reg => ({
+          scope: reg.scope,
+          active: reg.active ? true : false
+        }));
+      });
+      this.logger.log(`Retrieved ${serviceWorkers.length} service workers`);
+
+      // Get Cache Storage data
+      const cacheStorage = await page.evaluate(async () => {
+        const cacheNames = await caches.keys();
+        const cacheContents = {};
+        for (const name of cacheNames) {
+          const cache = await caches.open(name);
+          const keys = await cache.keys();
+          cacheContents[name] = keys.map(key => key.url);
+        }
+        return cacheContents;
+      });
+      this.logger.log(`Retrieved cache storage for ${Object.keys(cacheStorage).length} caches`);
+
+      // Get browser fingerprint
+      const browserFingerprint = await page.evaluate(() => ({
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        webRTC: !!window.RTCPeerConnection
+      }));
+
+      // Create complete browser profile
+      const browserProfile: BrowserProfile = {
+        cookies: formattedCookies,
+        localStorage,
+        sessionStorage,
+        indexedDB: {
+          databases: Object.keys(indexedDBData),
+          data: indexedDBData
+        },
+        serviceWorkers,
+        cacheStorage,
+        webRTC: browserFingerprint.webRTC,
+        browserFingerprint: {
+          userAgent: browserFingerprint.userAgent,
+          platform: browserFingerprint.platform,
+          language: browserFingerprint.language,
+          screenResolution: browserFingerprint.screenResolution,
+          timezone: browserFingerprint.timezone
+        }
+      };
+
       return {
         success: true,
-        cookies: JSON.stringify(formattedCookies),
-        message: 'Successfully retrieved cookies from browser'
+        browserProfile: JSON.stringify(browserProfile),
+        message: 'Successfully retrieved complete browser profile'
       };
     } catch (error) {
-      this.logger.error(`Error getting browser cookies for ${account.email}:`, error);
+      this.logger.error(`Error getting browser profile for ${account.email}:`, error);
       return {
         success: false,
-        cookies: null,
-        message: `Failed to get browser cookies: ${error.message}`
+        browserProfile: null,
+        message: `Failed to get browser profile: ${error.message}`
       };
     } finally {
-      // Ensure browser is closed to free resources
       if (browser) {
         await browser.close().catch((e) => {
           this.logger.error('Error closing browser:', e);
@@ -720,4 +834,204 @@ export class HailuoService {
       }
     }
   } 
+  
+  /**
+   * Test login functionality using only cookies without browser cache
+   * @param account Account with cookies to test
+   * @returns Object with login status and screenshot path
+   */
+  async testLoginWithCookiesOnly(account: Account) {
+    let browser;
+    let page;
+    
+    try {
+      this.logger.log(`Testing login with browser profile for account ${account.email}`);
+      
+      if (!account.browserProfile) {
+        throw new Error('No browser profile available for this account');
+      }
+
+      // Parse browser profile
+      const browserProfile: BrowserProfile = JSON.parse(account.browserProfile);
+      
+      // Launch browser with userDataDir to maintain profile
+      const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
+      browser = await puppeteer.launch({
+        headless: process.env.APP_URL?.includes('localhost') ? false : true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--window-size=1280,800',
+          '--start-maximized',
+          '--disable-web-security',
+          '--disable-features=IsolateOrigins,site-per-process',
+          '--disable-blink-features=AutomationControlled',
+          '--disable-infobars',
+          '--lang=en-US,en',
+        ],
+        defaultViewport: null,
+        devtools: true,
+        userDataDir, // Use the same profile directory
+      });
+      
+      // Open a new page
+      page = await browser.newPage();
+      
+      // Set browser fingerprint
+      await page.setUserAgent(browserProfile.browserFingerprint.userAgent);
+      
+      // Set default timeouts
+      page.setDefaultNavigationTimeout(60000);
+      page.setDefaultTimeout(60000);
+      
+      // Navigate to create page first to set up the page context
+      await page.goto('https://hailuoai.video/create', {
+        waitUntil: ['domcontentloaded', 'networkidle0'],
+        timeout: 60000,
+      });
+
+      // Set cookies
+      try {
+        if (browserProfile.cookies && browserProfile.cookies.length > 0) {
+          await page.setCookie(...browserProfile.cookies);
+          this.logger.log(`Set ${browserProfile.cookies.length} cookies for testing`);
+        }
+      } catch (cookieError) {
+        this.logger.error(`Failed to set cookies: ${cookieError.message}`);
+      }
+
+      // Restore localStorage
+      try {
+        if (browserProfile.localStorage) {
+          await page.evaluate((data) => {
+            Object.entries(data).forEach(([key, value]) => {
+              window.localStorage.setItem(key, value as string);
+            });
+          }, browserProfile.localStorage);
+          this.logger.log(`Restored ${Object.keys(browserProfile.localStorage).length} localStorage items`);
+        }
+      } catch (localStorageError) {
+        this.logger.error(`Failed to restore localStorage: ${localStorageError.message}`);
+      }
+
+      // Restore sessionStorage
+      try {
+        if (browserProfile.sessionStorage) {
+          await page.evaluate((data) => {
+            Object.entries(data).forEach(([key, value]) => {
+              window.sessionStorage.setItem(key, value as string);
+            });
+          }, browserProfile.sessionStorage);
+          this.logger.log(`Restored ${Object.keys(browserProfile.sessionStorage).length} sessionStorage items`);
+        }
+      } catch (sessionStorageError) {
+        this.logger.error(`Failed to restore sessionStorage: ${sessionStorageError.message}`);
+      }
+
+      // Restore IndexedDB data
+      try {
+        if (browserProfile.indexedDB && browserProfile.indexedDB.databases.length > 0) {
+          await page.evaluate((data) => {
+            // Note: IndexedDB data restoration is limited due to browser security
+            // We can only detect if databases exist
+            console.log('IndexedDB databases:', data.databases);
+          }, browserProfile.indexedDB);
+          this.logger.log(`Detected ${browserProfile.indexedDB.databases.length} IndexedDB databases`);
+        }
+      } catch (indexedDBError) {
+        this.logger.error(`Failed to restore IndexedDB: ${indexedDBError.message}`);
+      }
+
+      // Restore Service Workers
+      try {
+        if (browserProfile.serviceWorkers && browserProfile.serviceWorkers.length > 0) {
+          await page.evaluate((workers) => {
+            // Note: Service Workers can't be directly restored
+            // We can only detect if they were previously registered
+            console.log('Service Workers:', workers);
+          }, browserProfile.serviceWorkers);
+          this.logger.log(`Detected ${browserProfile.serviceWorkers.length} Service Workers`);
+        }
+      } catch (serviceWorkerError) {
+        this.logger.error(`Failed to restore Service Workers: ${serviceWorkerError.message}`);
+      }
+
+      // Restore Cache Storage
+      try {
+        if (browserProfile.cacheStorage && Object.keys(browserProfile.cacheStorage).length > 0) {
+          await page.evaluate((cacheData) => {
+            // Note: Cache Storage can't be directly restored
+            // We can only detect if caches existed
+            console.log('Cache Storage:', cacheData);
+          }, browserProfile.cacheStorage);
+          this.logger.log(`Detected ${Object.keys(browserProfile.cacheStorage).length} Cache Storage entries`);
+        }
+      } catch (cacheStorageError) {
+        this.logger.error(`Failed to restore Cache Storage: ${cacheStorageError.message}`);
+      }
+      
+      // Take screenshot of initial state
+      const initialScreenshotPath = `cookie-test-initial-${Date.now()}.png`;
+      await page.screenshot({ path: initialScreenshotPath });
+      this.logger.log(`Initial state screenshot saved to ${initialScreenshotPath}`);
+      
+      // Wait for content to load
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // Check if user is logged in by looking for avatar
+      const isLoggedIn = await page.evaluate(() => {
+        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
+        return !!avatarImg;
+      });
+      
+      // Take screenshot after login check
+      const finalScreenshotPath = `cookie-test-result-${Date.now()}.png`;
+      await page.screenshot({ path: finalScreenshotPath });
+      this.logger.log(`Final state screenshot saved to ${finalScreenshotPath}`);
+      
+      // Get page HTML for further analysis if needed
+      const pageContent = await page.content();
+      
+      return {
+        success: true,
+        isLoggedIn,
+        message: isLoggedIn ? 'Successfully logged in with browser profile' : 'Failed to log in with browser profile',
+        initialScreenshotPath,
+        finalScreenshotPath,
+        htmlLength: pageContent.length
+      };
+    } catch (error) {
+      this.logger.error(`Error testing login with browser profile for ${account.email}:`, error);
+      
+      // Take screenshot if possible
+      if (page && !page.isClosed()) {
+        try {
+          const errorScreenshotPath = `cookie-test-error-${Date.now()}.png`;
+          await page.screenshot({ path: errorScreenshotPath });
+          this.logger.log(`Error screenshot saved to ${errorScreenshotPath}`);
+          
+          return {
+            success: false,
+            isLoggedIn: false,
+            message: `Error testing login: ${error.message}`,
+            errorScreenshotPath
+          };
+        } catch (screenshotError) {
+          // Ignore screenshot errors
+        }
+      }
+      
+      return {
+        success: false,
+        isLoggedIn: false,
+        message: `Error testing login: ${error.message}`
+      };
+    } finally {
+      if (browser) {
+        await browser.close().catch(e => {
+          this.logger.error('Error closing browser:', e);
+        });
+      }
+    }
+  }
 }

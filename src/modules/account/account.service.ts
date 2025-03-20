@@ -151,15 +151,32 @@ export class AccountService {
 
     const cookie = await this.hailouService.getBrowserCookie(account);
 
-    // save cookie to database
+    // save browser profile to database
     await this.accountRepository.update(account.id, {
-      cookie: cookie.cookies,
+      browserProfile: cookie.browserProfile,
       lastLoginAt: new Date(),
       isCookieActive: true,
     });
 
     return cookie;
   } 
+
+  // test cookie
+  async testCookie(id: number) {
+    const account = await this.accountRepository.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
+    const cookie = await this.hailouService.testLoginWithCookiesOnly(account);
+
+    return cookie;
+  }
 }
 
 

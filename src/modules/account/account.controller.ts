@@ -46,6 +46,12 @@ export class AccountController {
     return this.accountService.paginate(filterAccountDto);
   }
 
+  // test cookie
+  @Post('/:id/test-cookie')
+  testCookie(@Param('id') id: string) {
+    return this.accountService.testCookie(Number(id));
+  }
+
   @Get(':accountId/videos')
   syncAccountVideos(@Param('accountId') accountId: string) {
     return this.accountService.syncAccountVideos(Number(accountId));
