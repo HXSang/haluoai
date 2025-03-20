@@ -176,7 +176,7 @@ model VideoResult {
   coverUrl  String    @map("cover_url")
   videoUrl  String    @map("video_url")
   downloadUrl String?  @map("download_url")
-  createTime Int? @map("create_time")
+  createTime String? @map("create_time")
   status    Int       @map("status")
   width     Int       @map("width")
   height    Int       @map("height")

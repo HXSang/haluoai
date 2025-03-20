@@ -692,7 +692,7 @@ export class HailuoService {
               promptImgUrl: asset.promptImgURL,
               extra: asset.extra,
               accountId: account.id,
-              createTime: asset.createTime,
+              createTime: String(asset.createTime),
             };
             videoResults.push(videoResult);
           }
