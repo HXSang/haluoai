@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsString, IsEnum, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsEnum, IsNumber, IsOptional, IsDate } from 'class-validator';
 import { QueueStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateJobQueueDto {
   @IsNotEmpty()
@@ -27,4 +28,10 @@ export class CreateJobQueueDto {
   @IsNumber()
   @ApiProperty({ description: 'The account id of the job queue', required: false, nullable: true })     
   accountId?: number | null;
+
+  @IsOptional()
+  @IsDate()
+  @Transform(({ value }) => new Date(value))
+  @ApiProperty({ description: 'The start at of the job queue', required: false, nullable: true })     
+  startAt?: Date | null;
 }

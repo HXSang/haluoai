@@ -23,7 +23,7 @@ export class VideoResultService {
   }
 
   async findAll(filterVideoResultDto: FilterVideoResultDto) { 
-    const { page, limit, search, accountId, jobQueueId, userId } = filterVideoResultDto;    
+    const { page, limit, search, accountId, jobQueueId, userId, isMarked } = filterVideoResultDto;    
 
     let where: Prisma.VideoResultWhereInput = {
       ...(accountId && { accountId: accountId }),
@@ -32,6 +32,7 @@ export class VideoResultService {
         { note: { contains: search, mode: 'insensitive' } }
       ] }),
       ...(userId && { creatorId: userId }),
+      ...(isMarked && { isMarked: true }),
     };
 
     if (jobQueueId) {
@@ -68,6 +69,20 @@ export class VideoResultService {
         ...item,
       })),
     };
+  }
+
+  async findAllImages(filterVideoResultDto: FilterVideoResultDto) {
+    const { accountId, jobQueueId, userId, isMarked } = filterVideoResultDto;
+    const result = await this.videoResultRepository.findMany({
+      where: {
+        ...(accountId && { accountId: accountId }),
+        ...(isMarked && { isMarked: true }),
+      },
+      select: {
+        promptImgUrl: true,
+      },
+    });
+    return result;
   }
 
   findFirst(filterVideoResultDto: FilterVideoResultDto) {

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional } from 'class-validator';
+import { IsDateString, IsNumber, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class AnalyzeDateRangeDto {
   @ApiProperty({
@@ -19,4 +20,24 @@ export class AnalyzeDateRangeDto {
   @IsDateString()
   @IsOptional()
   endDate?: string;
+  
+  @ApiProperty({
+    description: 'Filter by account ID',
+    example: 1,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  accountId?: number;
+  
+  @ApiProperty({
+    description: 'Filter by user ID',
+    example: 1,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  userId?: number;
 } 

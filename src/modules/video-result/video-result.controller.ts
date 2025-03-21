@@ -22,6 +22,12 @@ export class VideoResultController {
     return this.videoResultService.findAll(filterVideoResultDto);
   }
 
+
+  @Get("/all-images")
+  findAllImages(@Query() filterVideoResultDto: FilterVideoResultDto) {
+    return this.videoResultService.findAllImages(filterVideoResultDto);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.videoResultService.findOne(+id);  

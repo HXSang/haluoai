@@ -35,4 +35,10 @@ export class FilterVideoResultDto extends PaginationDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value))
   userId?: number;  
+
+  // is marked
+  @ApiProperty({ description: 'Search by is marked', example: true })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  isMarked?: boolean;  
 }
