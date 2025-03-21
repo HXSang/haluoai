@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateVideoResultDto } from './dto/create-video-result.dto';
 import { UpdateVideoResultDto } from './dto/update-video-result.dto';
 import { FilterVideoResultDto } from './dto/filter-video-result.dto';
@@ -84,6 +84,14 @@ export class VideoResultService {
 
   update(id: number, updateVideoResultDto: UpdateVideoResultDto) {
     return this.videoResultRepository.update(id, updateVideoResultDto);
+  }
+
+  async toggleMark(id: number, userId: number) {
+    const videoResult = await this.videoResultRepository.findById(id);    
+    if (!videoResult) {
+      throw new NotFoundException('Video result not found');
+    }
+    return this.videoResultRepository.update(id, { isMarked: !videoResult.isMarked, markedById: userId });
   }
 
   remove(id: number) {

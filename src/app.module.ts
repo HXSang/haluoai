@@ -30,6 +30,7 @@ import { HailuoModule } from './modules/hailuo/hailuo.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -65,7 +66,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
       global: true,
       middleware: { mount: true },
     }),
-    AuthModule, UserModule, AccountModule, VideoResultModule, JobQueueModule, HailuoModule, UploadModule, RolesModule, PermissionsModule,
+    AuthModule, UserModule, AccountModule, VideoResultModule, JobQueueModule, HailuoModule, UploadModule, RolesModule, PermissionsModule, DashboardModule,
   ],
   controllers: [AppController],
   providers: [

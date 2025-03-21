@@ -4,6 +4,8 @@ import { CreateVideoResultDto } from './dto/create-video-result.dto';
 import { UpdateVideoResultDto } from './dto/update-video-result.dto';
 import { FilterVideoResultDto } from './dto/filter-video-result.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthClaims, GetUser } from '@n-decorators';
+import { User } from '@prisma/client';
 
 @Controller('video')
 @ApiTags('Video')
@@ -28,6 +30,12 @@ export class VideoResultController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateVideoResultDto: UpdateVideoResultDto) {
     return this.videoResultService.update(+id, updateVideoResultDto);
+  }
+
+  @Post(':id/toggle-mark') 
+  @AuthClaims()
+  toggleMark(@Param('id') id: string, @GetUser() user: User) {
+    return this.videoResultService.toggleMark(+id, user.id);
   }
 
   @Delete(':id')
