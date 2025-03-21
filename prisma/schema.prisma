@@ -40,7 +40,6 @@ model User {
   email      String    @map("email")
   avatar     String?   @map("avatar")
   password   String?   @map("password")
-  roleId     Int?      @map("role_id")
   googleId   String?   @map("google_id")
   authType   AuthType? @map("auth_type")
   lastSignIn DateTime? @map("last_sign_in")
@@ -50,12 +49,12 @@ model User {
   updatedAt  DateTime? @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
 
-  role                     Role?                     @relation("UserRole", fields: [roleId], references: [id])
   userRoles                UserRole[]
   refreshTokens            RefreshToken[]
   jobQueues                JobQueue[] 
   videoResults             VideoResult[]  
-
+  videoResultsMarked       VideoResult[] @relation("VideoResultsMarked")
+  
   @@map("users")
 }
 
@@ -67,7 +66,6 @@ model Role {
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  users         User[]             @relation("UserRole")
   userRoles     UserRole[]
   permissions   RolePermission[]
 
@@ -193,6 +191,9 @@ model VideoResult {
   accountId Int?     @map("account_id")
   jobQueueId Int?     @map("job_queue_id")
   creatorId Int?     @map("creator_id")
+  note String? @map("note")
+  isMarked Boolean @default(false) @map("is_marked")
+  markedById Int? @map("marked_by_id")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
@@ -200,6 +201,7 @@ model VideoResult {
   jobQueue JobQueue? @relation(fields: [jobQueueId], references: [id])
   account Account? @relation(fields: [accountId], references: [id])
   user User? @relation(fields: [creatorId], references: [id])
+  markedBy User? @relation("VideoResultsMarked", fields: [markedById], references: [id])
 
   @@map("video_results")
 }

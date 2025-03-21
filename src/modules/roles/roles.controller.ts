@@ -43,6 +43,15 @@ export class RolesController {
     return this.rolesService.getRoles(page, limit, filter);
   }
 
+  @Get(':id')
+  @Permissions([Permission.GET_ROLE])
+  @AuthClaims()
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.rolesService.getRole(id);
+  }
+
   @Patch(':id')
   @Permissions([Permission.UPDATE_ROLE])
   @AuthClaims()

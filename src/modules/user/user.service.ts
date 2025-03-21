@@ -3,6 +3,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRepository } from './user.repository';
 import { FilterUserDto } from './dto/filter-user.dto';
+import { Role, UserRole } from '@prisma/client';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -11,14 +13,32 @@ export class UserService {
     return this.userRepository.create(createUserDto);
   }
 
-  findAll(filterUserDto: FilterUserDto) {
+  async findAll(filterUserDto: FilterUserDto) {
     const { page, limit, ...where } = filterUserDto;
-    return this.userRepository.paginate({
+    const users = await this.userRepository.paginate({
       page,
       limit,
       where,
+      include: {
+        userRoles: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
-  } 
+
+    users.items = users.items.map(
+      (user: User & { userRoles: UserRole & { role: Role } }) => {
+        return {
+          ...user,
+          role: user.userRoles?.[0]?.role || null,
+        };
+      },
+    );
+
+    return users;
+  }
 
   findOne(id: number) {
     return this.userRepository.findUnique({

@@ -4,7 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Permission } from '@n-constants';
 import { PermissionsService } from './permissions.service';
 
-@Controller('permissions')
+@Controller('permission')
 @ApiTags('Permission')
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) { }

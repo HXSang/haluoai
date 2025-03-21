@@ -23,11 +23,16 @@ export class VideoResultService {
   }
 
   async findAll(filterVideoResultDto: FilterVideoResultDto) { 
-    const { page, limit, search, accountId, jobQueueId } = filterVideoResultDto;    
+    const { page, limit, search, accountId, jobQueueId, userId } = filterVideoResultDto;    
 
     let where: Prisma.VideoResultWhereInput = {
       ...(search && { videoUrl: { contains: search } }),
       ...(accountId && { accountId: accountId }),
+      ...(search && { OR: [
+        { description: { contains: search } },
+        { note: { contains: search } }
+      ] }),
+      ...(userId && { creatorId: userId }),
     };
 
     if (jobQueueId) {

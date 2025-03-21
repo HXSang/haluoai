@@ -99,6 +99,14 @@ export class RolesService {
     return roles;
   }
 
+  async getRole(id: number) {
+    const role = await this.rolesRepository.findRoleById(id);
+    if (!role) {
+      throw new BaseException(Errors.ROLE.ROLE_NOT_FOUND);
+    }
+    return role;
+  } 
+
   async deleteRole(id: number) {
     return this.rolesRepository.softDelete(id);
   }

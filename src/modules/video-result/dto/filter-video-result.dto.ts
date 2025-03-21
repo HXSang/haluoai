@@ -29,4 +29,10 @@ export class FilterVideoResultDto extends PaginationDto {
   @IsOptional()
   @IsString()
   videoUrl?: string;
+
+  // user id
+  @ApiProperty({ description: 'Search by user id', example: 1 })
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value))
+  userId?: number;  
 }
