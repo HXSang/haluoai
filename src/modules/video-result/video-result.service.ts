@@ -26,11 +26,10 @@ export class VideoResultService {
     const { page, limit, search, accountId, jobQueueId, userId } = filterVideoResultDto;    
 
     let where: Prisma.VideoResultWhereInput = {
-      ...(search && { videoUrl: { contains: search } }),
       ...(accountId && { accountId: accountId }),
       ...(search && { OR: [
-        { description: { contains: search } },
-        { note: { contains: search } }
+        { description: { contains: search, mode: 'insensitive' } },
+        { note: { contains: search, mode: 'insensitive' } }
       ] }),
       ...(userId && { creatorId: userId }),
     };
@@ -41,7 +40,6 @@ export class VideoResultService {
           id: Number(jobQueueId),
         },
       });
-      console.log(queue);
       if (queue) {
         where = {
           ...where,
