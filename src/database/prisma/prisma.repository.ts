@@ -2,9 +2,9 @@ import { PrismaService } from '@n-database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { PrismaClient } from '@prisma/client/extension';
 
-export type findFirstQuery = Prisma.UserFindFirstArgs | Prisma.AccountFindFirstArgs | Prisma.JobQueueFindFirstArgs | Prisma.VideoResultFindFirstArgs;
+export type findFirstQuery = Prisma.UserFindFirstArgs | Prisma.AccountFindFirstArgs | Prisma.VideoResultFindFirstArgs | Prisma.JobQueueFindFirstArgs | any;
 export type findUniqueQuery = Prisma.UserFindUniqueArgs | Prisma.AccountFindUniqueArgs | Prisma.VideoResultFindUniqueArgs | Prisma.JobQueueFindUniqueArgs;
-export type countQuery = Prisma.UserCountArgs | Prisma.AccountCountArgs | Prisma.VideoResultCountArgs | Prisma.JobQueueCountArgs;
+export type countQuery = Prisma.UserCountArgs | Prisma.AccountCountArgs | Prisma.VideoResultCountArgs | Prisma.JobQueueCountArgs | Prisma.RoleCountArgs;
 export type findManyQuery = Prisma.UserFindManyArgs | Prisma.JobQueueFindManyArgs | Prisma.VideoResultFindManyArgs | Prisma.AccountFindManyArgs | Prisma.RoleFindManyArgs | Prisma.RolePermissionFindManyArgs;
 export type updateQuery = Prisma.UserUpdateArgs | Prisma.JobQueueUpdateArgs | Prisma.VideoResultUpdateArgs | Prisma.AccountUpdateArgs;
 export type deleteQuery = Prisma.UserDeleteArgs | Prisma.JobQueueDeleteArgs | Prisma.VideoResultDeleteArgs | Prisma.AccountDeleteArgs;
