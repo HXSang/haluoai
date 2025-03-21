@@ -88,7 +88,7 @@ export class AccountService {
       const createdVideos = await Promise.all(
         videosResponse.data.map(async (video) => {
           // find jobqueue promt match video description
-          const jobQueue = availableJobQueue.find(job => job.prompt.trim() === video.description.trim());
+          const jobQueue = availableJobQueue ? availableJobQueue?.find(job => job.prompt.trim() === video.description.trim()) : null;
           if (jobQueue && jobQueue?.userId){
             video.creatorId = jobQueue.userId;
           }

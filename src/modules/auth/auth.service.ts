@@ -161,6 +161,7 @@ export class AuthService {
     googleId?: string,
   ) {
     const user = await this.UserRepository.findByEmailWithAuthType(email, authType);
+    console.log(user);
     if (!user) throw new BaseException(Errors.AUTH.WRONG_CREDENTIALS);
 
     if (authType === AuthType.EMAIL) {

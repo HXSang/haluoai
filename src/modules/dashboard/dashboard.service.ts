@@ -43,12 +43,17 @@ export class DashboardService {
         dateFilter.lte = endDateTime.toISOString();
       }
       
-      // Create where conditions for video results
-      const videoWhereCondition = {
-        createdAt: Object.keys(dateFilter).length > 0 ? dateFilter : undefined,
+      // Create where conditions for video results - using createTime instead of createdAt
+      const videoWhereCondition: any = {
         ...(accountId && { accountId }),
         ...(userId && { creatorId: userId })
       };
+      
+      // Process date filter differently for videos since they use createTime
+      if (Object.keys(dateFilter).length > 0) {
+        // If we have date filters, we'll need to use raw SQL or filter in memory
+        // We'll filter in memory after fetching the data
+      }
       
       // Create where conditions for job queues
       const queueWhereCondition = {
@@ -57,133 +62,126 @@ export class DashboardService {
         ...(userId && { userId })
       };
       
-      // Count videos within the date range
-      const totalVideos = await this.videoResultRepository.count({
-        where: videoWhereCondition
+      // Count videos within the date range - we'll need to post-filter this
+      const allVideos = await this.videoResultRepository.findMany({
+        where: {
+          ...(accountId && { accountId }),
+          ...(userId && { creatorId: userId })
+        },
+        select: {
+          id: true,
+          createTime: true
+        }
       });
+      
+      // Filter videos by date range manually
+      let filteredVideos = allVideos;
+      if (dateFilter.gte || dateFilter.lte) {
+        filteredVideos = allVideos.filter(video => {
+          try {
+            // createTime is a string timestamp
+            const videoDate = new Date(Number(video.createTime));
+            
+            if (dateFilter.gte && videoDate < new Date(dateFilter.gte)) {
+              return false;
+            }
+            
+            if (dateFilter.lte && videoDate > new Date(dateFilter.lte)) {
+              return false;
+            }
+            
+            return true;
+          } catch (e) {
+            // If we can't parse the date, include the video anyway
+            return true;
+          }
+        });
+      }
+      
+      const totalVideos = filteredVideos.length;
       
       // Count total queue uploads within date range
       const totalQueueUploads = await this.jobQueueRepository.count({
         where: queueWhereCondition
       });
       
-      // Build SQL conditions safely
-      let videoSqlConditions = 'WHERE 1=1';
-      const videoParams: any[] = [];
-
-      if (videoWhereCondition.createdAt?.gte) {
-        videoSqlConditions += ' AND created_at >= ?';
-        videoParams.push(videoWhereCondition.createdAt.gte);
-      }
+      // Get all dates in the date range
+      const allDates = this.generateDateRange(startDate, endDate);
       
-      if (videoWhereCondition.createdAt?.lte) {
-        videoSqlConditions += ' AND created_at <= ?';
-        videoParams.push(videoWhereCondition.createdAt.lte);
-      }
-      
-      if (videoWhereCondition.accountId) {
-        videoSqlConditions += ' AND account_id = ?';
-        videoParams.push(videoWhereCondition.accountId);
-      }
-      
-      if (videoWhereCondition.creatorId) {
-        videoSqlConditions += ' AND creator_id = ?';
-        videoParams.push(videoWhereCondition.creatorId);
-      }
-      
-      // Build queue SQL conditions safely
-      let queueSqlConditions = 'WHERE 1=1';
-      const queueParams: any[] = [];
-
-      if (queueWhereCondition.createdAt?.gte) {
-        queueSqlConditions += ' AND created_at >= ?';
-        queueParams.push(queueWhereCondition.createdAt.gte);
-      }
-      
-      if (queueWhereCondition.createdAt?.lte) {
-        queueSqlConditions += ' AND created_at <= ?';
-        queueParams.push(queueWhereCondition.createdAt.lte);
-      }
-      
-      if (queueWhereCondition.accountId) {
-        queueSqlConditions += ' AND account_id = ?';
-        queueParams.push(queueWhereCondition.accountId);
-      }
-      
-      if (queueWhereCondition.userId) {
-        queueSqlConditions += ' AND user_id = ?';
-        queueParams.push(queueWhereCondition.userId);
-      }
-      
-      // Execute queries with parameterized SQL
-      const videoQuery = `
-        SELECT 
-          DATE(created_at) as date,
-          COUNT(*) as count
-        FROM video_results
-        ${videoSqlConditions}
-        GROUP BY DATE(created_at)
-        ORDER BY date ASC
-      `;
-      
-      const queueQuery = `
-        SELECT 
-          DATE(created_at) as date,
-          COUNT(*) as count
-        FROM queues
-        ${queueSqlConditions}
-        GROUP BY DATE(created_at)
-        ORDER BY date ASC
-      `;
-      
-      const videosByDateRaw = await this.prisma.$queryRawUnsafe<DateCountResult[]>(
-        videoQuery,
-        ...videoParams
-      );
-      
-      const queuesByDateRaw = await this.prisma.$queryRawUnsafe<DateCountResult[]>(
-        queueQuery,
-        ...queueParams
-      );
-      
-      // Create a map to combine video and queue data by date
+      // Create a map for quicker lookups
       const dailyResultsMap = new Map<string, { date: string; videoCount: number; queueCount: number }>();
       
-      // Convert the raw SQL results to the format we need
-      videosByDateRaw.forEach((item: DateCountResult) => {
-        const dateStr = this.formatDateFromSQL(item.date);
-        dailyResultsMap.set(dateStr, {
-          date: dateStr,
-          videoCount: Number(item.count),
+      // Initialize the map with all dates in the range
+      allDates.forEach(date => {
+        dailyResultsMap.set(date, {
+          date,
+          videoCount: 0,
           queueCount: 0
         });
       });
       
-      // Add queue counts to existing dates or add new dates
-      queuesByDateRaw.forEach((item: DateCountResult) => {
-        const dateStr = this.formatDateFromSQL(item.date);
+      // Group videos by date
+      filteredVideos.forEach(video => {
+        try {
+          // Convert the createTime (string timestamp) to a date string
+          const videoTimestamp = Number(video.createTime);
+          if (isNaN(videoTimestamp)) {
+            return; // Skip if not a valid number
+          }
+          
+          const videoDate = new Date(videoTimestamp);
+          const dateStr = this.formatDate(videoDate);
+          
+          if (dailyResultsMap.has(dateStr)) {
+            const current = dailyResultsMap.get(dateStr);
+            current.videoCount++;
+            dailyResultsMap.set(dateStr, current);
+          } else {
+            dailyResultsMap.set(dateStr, {
+              date: dateStr,
+              videoCount: 1,
+              queueCount: 0
+            });
+          }
+        } catch (e) {
+          // Skip this video if date conversion fails
+          this.logger.warn(`Failed to process video date: ${video.createTime}`);
+        }
+      });
+      
+      // Get all queues and group them by date
+      const queues = await this.jobQueueRepository.findMany({
+        where: queueWhereCondition,
+        select: {
+          createdAt: true
+        }
+      });
+      
+      // Group queues by date
+      queues.forEach(queue => {
+        const dateStr = this.formatDate(queue.createdAt);
         if (dailyResultsMap.has(dateStr)) {
           const current = dailyResultsMap.get(dateStr);
-          current.queueCount = Number(item.count);
+          current.queueCount++;
           dailyResultsMap.set(dateStr, current);
         } else {
           dailyResultsMap.set(dateStr, {
             date: dateStr,
             videoCount: 0,
-            queueCount: Number(item.count)
+            queueCount: 1
           });
         }
       });
       
       // Convert map to array and sort by date
-      const dailyTotals = Array.from(dailyResultsMap.values())
+      const sortedDailyTotals = Array.from(dailyResultsMap.values())
         .sort((a, b) => a.date.localeCompare(b.date));
       
       return {
         success: true,
         totalVideos,
         totalQueueUploads,
-        dailyTotals,
+        dailyTotals: sortedDailyTotals,
         filters: {
           dateRange: {
             startDate: startDate || 'All time',
@@ -201,6 +199,33 @@ export class DashboardService {
         error: error.message
       };
     }
+  }
+  
+  private generateDateRange(startDateStr?: string, endDateStr?: string): string[] {
+    const dates: string[] = [];
+    
+    // If no dates provided, return empty array
+    if (!startDateStr && !endDateStr) {
+      return dates;
+    }
+    
+    // Set default dates if not provided
+    const startDate = startDateStr ? new Date(startDateStr) : new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+    const endDate = endDateStr ? new Date(endDateStr) : new Date();
+    
+    // Ensure start date is before end date
+    if (startDate > endDate) {
+      return dates;
+    }
+    
+    // Generate dates
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      dates.push(this.formatDate(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return dates;
   }
   
   private formatDate(date: Date): string {
