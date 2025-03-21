@@ -57,9 +57,14 @@ export class VideoResultService {
         account: true,
         jobQueue: true,
       },
-      orderBy: {
-        createTime: 'desc',
-      },
+      orderBy: [
+        {
+          createTime: 'desc',
+        },
+        {
+          id: 'desc',
+        }
+      ],
     }); 
 
     // Transform BigInt to string in the response

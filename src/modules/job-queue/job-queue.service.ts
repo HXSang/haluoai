@@ -124,6 +124,10 @@ export class JobQueueService {
       account = await this.accountService.findOne(job.accountId);
     } else {
       account = await this.accountService.findRandomActiveAccount();
+      // update job queue with account id
+      await this.jobQueueRepository.update(id, {
+        accountId: account.id,
+      });
     }
 
     // if account have no cookie, then we need to return failed
