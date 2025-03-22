@@ -13,8 +13,8 @@ export class JobQueueProcessor {
   private readonly logger = new Logger(JobQueueProcessor.name);
   private isProcessing = false;
   private isGettingVideos = false;
-  // private isActiveJobQueue = process.env.ACTIVE_JOB_QUEUE === 'true';
-  private isActiveJobQueue = false;
+  private isActiveJobQueue = process.env.ACTIVE_JOB_QUEUE === 'true';
+  // private isActiveJobQueue = false;
   constructor(
     private readonly jobQueueService: JobQueueService,
     private readonly hailouService: HailuoService,
