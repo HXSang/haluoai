@@ -97,7 +97,7 @@ export class JobQueueProcessor {
   }
 
   //job run getVideosList
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async getVideosList() {
     this.logger.log('getVideosList at ' + new Date().toISOString());
     if (!this.isActiveJobQueue || this.isGettingVideos) {
