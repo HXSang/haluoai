@@ -5,7 +5,6 @@ import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { AccountService } from '@n-modules/account/account.service';
 import { VideoResultService } from '@n-modules/video-result/video-result.service';
 import { AccountRepository } from '@n-modules/account/account.repository';
-import { QueueStatus } from '@prisma/client';
 import { JobQueueRepository } from './job-queue.repository';
 
 @Injectable()
@@ -97,7 +96,7 @@ export class JobQueueProcessor {
   }
 
   //job run getVideosList
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_MINUTE)
   async getVideosList() {
     this.logger.log('getVideosList at ' + new Date().toISOString());
     if (!this.isActiveJobQueue || this.isGettingVideos) {

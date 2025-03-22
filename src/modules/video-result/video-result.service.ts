@@ -77,7 +77,7 @@ export class VideoResultService {
   }
 
   async findAllImages(filterVideoResultDto: FilterVideoResultDto) {
-    const { accountId, jobQueueId, userId, isMarked, page, limit } = filterVideoResultDto;
+    const { accountId, userId, isMarked, page, limit } = filterVideoResultDto;
     const result = await this.videoResultRepository.groupByPagination({
       page,
       limit,
@@ -85,6 +85,7 @@ export class VideoResultService {
       where: {
         ...(accountId && { accountId: accountId }),
         ...(isMarked && { isMarked: true }),
+        ...(userId && { creatorId: userId }),
       },
     });
     return result;
