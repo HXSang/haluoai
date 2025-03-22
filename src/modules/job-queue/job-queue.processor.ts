@@ -92,12 +92,11 @@ export class JobQueueProcessor {
 
       for (const account of accounts) {
         try {
+          await this.accountService.updateLastOpenAt(account.id);
           await this.accountService.syncAccountVideos(account.id, jobQueues);
         } catch (error) {
           this.logger.error(`Error in getVideosList: ${error.message}`);
-        } finally {
-          await this.accountService.updateLastOpenAt(account.id);
-        }
+        } 
       }
     } catch (error) {
       this.logger.error(`Error in getVideosList: ${error.message}`);

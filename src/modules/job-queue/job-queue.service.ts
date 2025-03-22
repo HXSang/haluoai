@@ -138,6 +138,7 @@ export class JobQueueService {
       await this.jobQueueRepository.update(id, {
         accountId: account.id,
       });
+      await this.accountService.updateLastOpenAt(account.id);
     } else {
       await this.markAsPending(id);
       return true;
