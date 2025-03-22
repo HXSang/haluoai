@@ -32,6 +32,12 @@ export class AccountController {
     return this.accountService.loginHailuoaiByGoogle(createGAccountDto);
   }
 
+  // get active accounts
+  @Get('active')
+  getActiveAccounts() {
+    return this.accountService.findActiveAccounts();
+  }
+
   // update account
   @Put(':accountId')
   updateAccount(

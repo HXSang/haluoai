@@ -41,9 +41,10 @@ export class AccountService {
       where: {
         isActive: true,
         isCookieActive: true,
-        lastOpenAt: {
-          lte: threeMinutesAgo,
-        },
+        OR: [
+          { lastOpenAt: { lte: threeMinutesAgo } },
+          { lastOpenAt: null },
+        ],
       },
     });
   }
