@@ -41,7 +41,7 @@ export class AccountService {
       where: {
         isActive: true,
         isCookieActive: true,
-        OR: [{ lastOpenAt: { lte: twoMinutesAgo } }, { lastOpenAt: null }],
+        // OR: [{ lastOpenAt: { lte: twoMinutesAgo } }, { lastOpenAt: null }],
       },
     });
   }
@@ -140,7 +140,7 @@ export class AccountService {
       where: {
         isActive: true,
         isCookieActive: true,
-        OR: [{ lastOpenAt: { lte: twoMinutesAgo } }, { lastOpenAt: null }],
+        // OR: [{ lastOpenAt: { lte: twoMinutesAgo } }, { lastOpenAt: null }],
       },
     });
     return accounts[0];
@@ -162,7 +162,7 @@ export class AccountService {
         id: id,
         isActive: true,
         isCookieActive: true,
-        OR: [{ lastOpenAt: { lte: twoMinutesAgo } }, { lastOpenAt: null }],
+        // OR: [{ lastOpenAt: { lte: twoMinutesAgo } }, { lastOpenAt: null }],
       },
     });
   }
