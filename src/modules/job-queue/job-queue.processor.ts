@@ -43,13 +43,13 @@ export class JobQueueProcessor {
       try {
         // if job have account id should check account available
         if (job.accountId) {
-          // 3 minutes ago
-          const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
+          // 2 minutes ago
+          const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
           const account = await this.accountRepository.findFirst({
             where: {
               id: job.accountId,
               OR: [
-                { lastOpenAt: { lte: threeMinutesAgo } },
+                { lastOpenAt: { lte: twoMinutesAgo } },
                 { lastOpenAt: null },
               ],
             },

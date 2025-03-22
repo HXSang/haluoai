@@ -29,8 +29,8 @@ export class AccountService {
   }
 
   async findActiveAccounts() {
-    // tìm các account có lastOpenAt nhỏ hơn 3p
-    const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
+    // tìm các account có lastOpenAt nhỏ hơn 2p
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     return await this.accountRepository.findMany({
       select: {
         id: true,
@@ -42,7 +42,7 @@ export class AccountService {
         isActive: true,
         isCookieActive: true,
         OR: [
-          { lastOpenAt: { lte: threeMinutesAgo } },
+          { lastOpenAt: { lte: twoMinutesAgo } },
           { lastOpenAt: null },
         ],
       },
