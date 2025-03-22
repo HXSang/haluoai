@@ -64,6 +64,8 @@ export class JobQueueProcessor {
             this.logger.log('Account not active');
             return;
           }
+
+          console.log('Account available to run job: ', account);
         }
 
         await this.jobQueueService.markAsProcessing(job.id);
