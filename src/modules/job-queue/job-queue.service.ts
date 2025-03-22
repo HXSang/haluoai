@@ -27,7 +27,9 @@ export class JobQueueService {
   }
 
   async findAll(filterJobQueueDto: FilterJobQueueDto) {
-    const { page, limit, search } = filterJobQueueDto;
+    const { page, limit, search, accountId, userId } = filterJobQueueDto;
+    console.log("accountId", accountId);
+    console.log("userId", userId);
     return this.jobQueueRepository.paginate({
       page,
       limit,
@@ -35,7 +37,10 @@ export class JobQueueService {
         imageUrl: {
           contains: search,
         },
+        ...(accountId && { accountId }),
+        ...(userId && { userId }),
       },
+
       orderBy: {
         createdAt: 'desc',
       },

@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client/extension';
 export type findFirstQuery = Prisma.UserFindFirstArgs | Prisma.AccountFindFirstArgs | Prisma.VideoResultFindFirstArgs | Prisma.JobQueueFindFirstArgs | any;
 export type findUniqueQuery = Prisma.UserFindUniqueArgs | Prisma.AccountFindUniqueArgs | Prisma.VideoResultFindUniqueArgs | Prisma.JobQueueFindUniqueArgs;
 export type countQuery = Prisma.UserCountArgs | Prisma.AccountCountArgs | Prisma.VideoResultCountArgs | Prisma.JobQueueCountArgs | Prisma.RoleCountArgs;
-export type findManyQuery = Prisma.UserFindManyArgs | Prisma.JobQueueFindManyArgs | Prisma.VideoResultFindManyArgs | Prisma.AccountFindManyArgs | Prisma.RoleFindManyArgs | Prisma.RolePermissionFindManyArgs;
+export type findManyQuery = Prisma.UserFindManyArgs | Prisma.JobQueueFindManyArgs | Prisma.VideoResultFindManyArgs | Prisma.AccountFindManyArgs | Prisma.RoleFindManyArgs | Prisma.RolePermissionFindManyArgs | any;
 export type updateQuery = Prisma.UserUpdateArgs | Prisma.JobQueueUpdateArgs | Prisma.VideoResultUpdateArgs | Prisma.AccountUpdateArgs;
 export type deleteQuery = Prisma.UserDeleteArgs | Prisma.JobQueueDeleteArgs | Prisma.VideoResultDeleteArgs | Prisma.AccountDeleteArgs;
 export type groupByQuery = Prisma.UserGroupByArgs | Prisma.JobQueueGroupByArgs | Prisma.VideoResultGroupByArgs;
