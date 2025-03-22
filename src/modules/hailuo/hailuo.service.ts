@@ -122,7 +122,8 @@ export class HailuoService {
   }
 
   private async initializeBrowser(account: Account, options: { headless?: boolean } = {}) {
-    const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
+    const currentDate = new Date().toISOString().split('T')[0];
+    const userDataDir = path.join(process.cwd(), `browser-data-${account.id}-${currentDate}`);
     let browser;
     
     // Unlock the profile if it's locked
@@ -1355,4 +1356,25 @@ export class HailuoService {
 
 
   // get
+
+  // remove old profile
+  async removeOldProfile(accountId: number) {
+    // get all folder start with browser-data-${accountId}-
+    const userDataDir = path.join(process.cwd(), `browser-data-${accountId}-`);
+    const folders = fs.readdirSync(userDataDir);
+    
+    // find found created 1 day ago
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const foldersToRemove = folders.filter(folder => {
+      const folderDate = new Date(folder.split('-')[2]);
+      return folderDate < oneDayAgo;
+    });
+    console.log('Folders to remove: ', foldersToRemove);
+
+    // remove all folders
+    foldersToRemove.forEach(folder => {
+      const folderPath = path.join(userDataDir, folder);
+      fs.rmdirSync(folderPath, { recursive: true });
+    });
+  }
 }

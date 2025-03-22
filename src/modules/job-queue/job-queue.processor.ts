@@ -122,4 +122,12 @@ export class JobQueueProcessor {
   async autoDeleteVideo() {
     await this.videoResultService.autoDeleteVideo();
   }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async removeOldProfile() {
+    const accounts = await this.accountService.findActiveAccounts();
+    for (const account of accounts) {
+      await this.hailouService.removeOldProfile(account.id);
+    }
+  }
 }
