@@ -37,6 +37,6 @@ export class CreateJobQueueDto {
 
   @IsOptional()
   @IsString()
-  @ApiProperty({ description: 'The model of the job queue', required: false, nullable: true })     
-  model?: string | null; 
+  @ApiProperty({ description: 'The model id of the job queue', required: false, nullable: true })     
+  modelId?: number | null; 
 }
