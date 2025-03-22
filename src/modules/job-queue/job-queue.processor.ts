@@ -14,7 +14,7 @@ export class JobQueueProcessor {
   private isProcessing = false;
   private isGettingVideos = false;
   // private isActiveJobQueue = process.env.ACTIVE_JOB_QUEUE === 'true';
-  private isActiveJobQueue = true;
+  private isActiveJobQueue = false;
   constructor(
     private readonly jobQueueService: JobQueueService,
     private readonly hailouService: HailuoService,
@@ -116,11 +116,10 @@ export class JobQueueProcessor {
         },
         take: 10,
       });
-      console.log('Found total accounts: ', accounts.length);
-      console.log('Found total jobQueues: ', jobQueues.length);
+
       for (const account of accounts) {
         try {
-          await this.accountService.updateLastOpenAt(account.id);
+          await this.accountService.syncAccountVideos(account.id, jobQueues);
         } catch (error) {
           this.logger.error(`Error in getVideosList: ${error.message}`);
         } finally {
