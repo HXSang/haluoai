@@ -45,12 +45,29 @@ export class HailuoService {
 
       const lockFile = path.join(profilePath, 'SingletonLock');
       const singletonFile = path.join(profilePath, 'SingletonCookie');
+      const preferencesFile = path.join(profilePath, 'Preferences');
+      const leveldbLockFile = path.join(profilePath, 'lockfile');
 
       console.log('lockFile: ', lockFile);
       console.log('singletonFile: ', singletonFile);
 
+      // Check for and kill any running Chrome processes if needed
+      try {
+        const { execSync } = require('child_process');
+        // Find Chrome processes that might be using this profile
+        execSync('pkill -f "browser-data-"').toString();
+        console.log('Killed any running Chrome processes');
+        this.logger.log('Killed any running Chrome processes');
+      } catch (processError) {
+        // Ignore errors here as there might not be any processes
+        console.log('No Chrome processes needed to be killed');
+      }
+
+      // Wait a moment to ensure processes are terminated
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Remove lock files with proper error handling
-      const filesToRemove = [lockFile, singletonFile];
+      const filesToRemove = [lockFile, singletonFile, leveldbLockFile];
       for (const file of filesToRemove) {
         try {
           if (fs.existsSync(file)) {
@@ -78,6 +95,23 @@ export class HailuoService {
         }
       }
 
+      // Fix Preferences file if it's corrupt
+      try {
+        if (fs.existsSync(preferencesFile)) {
+          const preferences = fs.readFileSync(preferencesFile, 'utf8');
+          if (preferences.includes('Shut down cleanly')) {
+            // Replace corrupt preferences with fixed version
+            const fixedPreferences = preferences.replace(/"exit_type":"Shut down cleanly"/g, '"exit_type":"Normal"');
+            fs.writeFileSync(preferencesFile, fixedPreferences);
+            console.log('Fixed corrupt Preferences file');
+            this.logger.log('Fixed corrupt Preferences file');
+          }
+        }
+      } catch (preferencesError) {
+        this.logger.error('Error fixing Preferences file:', preferencesError);
+        console.log('Error fixing Preferences file:', preferencesError);
+      }
+
       // Set proper permissions on profile directory
       fs.chmodSync(profilePath, 0o755);
     } catch (error) {
@@ -89,29 +123,72 @@ export class HailuoService {
 
   private async initializeBrowser(account: Account, options: { headless?: boolean } = {}) {
     const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
+    let browser;
     
     // Unlock the profile if it's locked
-    // await this.unlockChromeProfile(userDataDir);
+    await this.unlockChromeProfile(userDataDir);
 
     const headless = options.headless ?? process.env.APP_URL?.includes('localhost') ? false : true;
 
-    const browser = await puppeteer.launch({
-      headless: headless,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--window-size=1280,800',
-        '--start-maximized',
-        '--disable-web-security',
-        '--disable-features=IsolateOrigins,site-per-process',
-        '--disable-blink-features=AutomationControlled',
-        '--disable-infobars',
-        '--lang=en-US,en',
-      ],
-      defaultViewport: null,
-      devtools: true,
-      userDataDir,
-    });
+    try {
+      browser = await puppeteer.launch({
+        headless: headless,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--window-size=1280,800',
+          '--start-maximized',
+          '--disable-web-security',
+          '--disable-features=IsolateOrigins,site-per-process',
+          '--disable-blink-features=AutomationControlled',
+          '--disable-infobars',
+          '--lang=en-US,en',
+        ],
+        defaultViewport: null,
+        devtools: true,
+        userDataDir,
+      });
+    } catch (error) {
+      this.logger.error(`Browser launch failed: ${error.message}`);
+      // Try cleaning up the profile directory completely as a last resort
+      try {
+        console.log('Attempting to clean up profile directory completely...');
+        const { execSync } = require('child_process');
+        // Remove the entire profile directory
+        execSync(`rm -rf "${userDataDir}"`);
+        console.log(`Removed entire profile directory at ${userDataDir}`);
+        this.logger.log(`Removed entire profile directory at ${userDataDir}`);
+        
+        // Recreate the directory
+        fs.mkdirSync(userDataDir, { recursive: true });
+        console.log(`Recreated profile directory at ${userDataDir}`);
+        this.logger.log(`Recreated profile directory at ${userDataDir}`);
+        
+        // Try launching again with the clean profile
+        browser = await puppeteer.launch({
+          headless: headless,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--window-size=1280,800',
+            '--start-maximized',
+            '--disable-web-security',
+            '--disable-features=IsolateOrigins,site-per-process',
+            '--disable-blink-features=AutomationControlled',
+            '--disable-infobars',
+            '--lang=en-US,en',
+          ],
+          defaultViewport: null,
+          devtools: true,
+          userDataDir,
+        });
+        console.log('Browser launched successfully after cleanup');
+        this.logger.log('Browser launched successfully after cleanup');
+      } catch (cleanupError) {
+        this.logger.error(`Browser launch failed even after cleanup: ${cleanupError.message}`);
+        throw new Error(`Failed to launch browser: ${error.message}. Cleanup also failed: ${cleanupError.message}`);
+      }
+    }
 
     const page = await browser.newPage();
 
@@ -1224,6 +1301,55 @@ export class HailuoService {
           this.logger.error('Error closing browser:', e);
         });
       }
+    }
+  }
+
+  /**
+   * Clear browser data for a specific account
+   * @param accountId Account ID to clear browser data for
+   * @returns Object indicating success or failure
+   */
+  async clearBrowserData(accountId: number) {
+    try {
+      const userDataDir = path.join(process.cwd(), `browser-data-${accountId}`);
+      this.logger.log(`Attempting to clear browser data for account ${accountId} at ${userDataDir}`);
+      
+      if (!fs.existsSync(userDataDir)) {
+        this.logger.log(`No browser data directory found at ${userDataDir}`);
+        return {
+          success: true,
+          message: 'No browser data directory found to clear'
+        };
+      }
+      
+      // Kill any Chrome processes that might be using this profile
+      try {
+        const { execSync } = require('child_process');
+        execSync(`pkill -f "browser-data-${accountId}"`).toString();
+        this.logger.log(`Killed Chrome processes related to account ${accountId}`);
+      } catch (processError) {
+        // Ignore errors as there might not be any processes
+        this.logger.log('No Chrome processes needed to be killed');
+      }
+      
+      // Wait a moment to ensure processes are terminated
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Remove the entire profile directory
+      const { execSync } = require('child_process');
+      execSync(`rm -rf "${userDataDir}"`);
+      this.logger.log(`Removed browser data directory at ${userDataDir}`);
+      
+      return {
+        success: true,
+        message: `Successfully cleared browser data for account ${accountId}`
+      };
+    } catch (error) {
+      this.logger.error(`Failed to clear browser data: ${error.message}`);
+      return {
+        success: false,
+        message: `Failed to clear browser data: ${error.message}`
+      };
     }
   }
 }

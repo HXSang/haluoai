@@ -134,6 +134,7 @@ export class PrismaRepository<T> extends PrismaService {
   async restore(id: number): Promise<T> {
     return this.prismaService[this.model as keyof PrismaClient].update({
       where: { id },
+      data: { deletedAt: null },
     });
   }
 

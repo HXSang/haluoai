@@ -6,6 +6,7 @@ import { FilterUserDto } from './dto/filter-user.dto';
 import { AuthType, Role, UserRole } from '@prisma/client';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { withTrashedCondition } from '@n-utils';
 
 @Injectable()
 export class UserService {
@@ -22,11 +23,14 @@ export class UserService {
   }
 
   async findAll(filterUserDto: FilterUserDto) {
-    const { page, limit, ...where } = filterUserDto;
+    const { page, limit, name } = filterUserDto;
     const users = await this.userRepository.paginate({
       page,
       limit,
-      where,
+      where: {
+        ...(name ? { name: { contains: name } } : {}),
+        ...withTrashedCondition,
+      },
       include: {
         userRoles: {
           include: {
@@ -59,7 +63,19 @@ export class UserService {
       const hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
       updateUserDto.password = hashedPassword;
     }
-    return this.userRepository.update(id, updateUserDto);
+    const { isActive, ...rest } = updateUserDto;
+
+    if (isActive !== undefined && isActive) {
+      this.userRepository.restore(id);
+    }
+
+    const user = await this.userRepository.update(id, rest);
+
+    if (isActive !== undefined && !isActive) {
+      return this.userRepository.delete(id);
+    }
+
+    return user;
   }
 
   remove(id: number) {

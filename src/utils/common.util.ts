@@ -1,4 +1,5 @@
 import { COMMON_CONSTANT } from '@n-constants';
+import { OrNode } from 'kysely';
 
 export function makePaginationResponse(
   data: any,
@@ -61,7 +62,13 @@ export function uuidv4(length: number = 32) {
   });
   return uuid.slice(0, length);
 }
-export const withTrashedCondition = { isActive: false };
+
+export const withTrashedCondition = { 
+  OR: [
+    { deletedAt: null },
+    { deletedAt: { not: null } },
+  ],
+ };
 
 
 

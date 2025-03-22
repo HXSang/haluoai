@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Put,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
@@ -32,13 +33,14 @@ export class AccountController {
   }
 
   // update account
-  @Patch(':accountId')
+  @Put(':accountId')
   updateAccount(
     @Param('accountId') accountId: string,
     @Body() updateAccountDto: UpdateAccountDto,
   ) {
     return this.accountService.update(Number(accountId), updateAccountDto);
   }
+  
 
   // get all
   @Get()
