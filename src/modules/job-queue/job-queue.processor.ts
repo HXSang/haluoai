@@ -40,34 +40,6 @@ export class JobQueueProcessor {
       }
 
       try {
-        // if job have account id should check account available
-        if (job.accountId) {
-          // 2 minutes ago
-          const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-          const account = await this.accountRepository.findFirst({
-            where: {
-              id: job.accountId,
-              OR: [
-                { lastOpenAt: { lte: twoMinutesAgo } },
-                { lastOpenAt: null },
-              ],
-            },
-            select: {
-              isActive: true,
-            },
-          });
-          if (!account) {
-            this.logger.log('Account not found');
-            return;
-          }
-          if (!account.isActive) {
-            this.logger.log('Account not active');
-            return;
-          }
-
-          console.log('Account available to run job: ', account);
-        }
-
         await this.jobQueueService.markAsProcessing(job.id);
 
         await this.jobQueueService.process(job.id);
