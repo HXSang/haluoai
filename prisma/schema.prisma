@@ -157,7 +157,7 @@ model JobQueue {
   generateTimes Int @map("generate_times") @default(1)
   generatedTimes Int @map("generated_times") @default(0)
   accountId Int? @map("account_id")
-  model Model? @map("model")
+  modelId Model? @map("model_id")
   userId Int? @map("user_id")
   startAt DateTime? @map("start_at")
   createdAt DateTime  @default(now()) @map("created_at")

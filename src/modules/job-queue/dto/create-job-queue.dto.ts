@@ -34,4 +34,9 @@ export class CreateJobQueueDto {
   @Transform(({ value }) => new Date(value))
   @ApiProperty({ description: 'The start at of the job queue', required: false, nullable: true })     
   startAt?: Date | null;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ description: 'The model of the job queue', required: false, nullable: true })     
+  model?: string | null; 
 }
