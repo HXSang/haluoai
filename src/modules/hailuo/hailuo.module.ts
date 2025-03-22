@@ -3,11 +3,13 @@ import { HailuoService } from './hailuo.service';
 import { HailuoController } from './hailuo.controller';
 import { AccountModule } from '@n-modules/account/account.module';
 import { PrismaModule } from '@n-database/prisma/prisma.module';
+import { HailuoApiService } from './hailuo.api.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, HttpModule],
   controllers: [HailuoController],
-  providers: [HailuoService],
-  exports: [HailuoService],
+  providers: [HailuoService, HailuoApiService],
+  exports: [HailuoService, HailuoApiService],
 })
 export class HailuoModule {}

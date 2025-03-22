@@ -157,6 +157,9 @@ export class JobQueueService {
       status: newStatus,
     });
 
+    // update account lastOpenAt
+    await this.accountService.updateLastOpenAt(account.id);
+
     return result;
   }
 }

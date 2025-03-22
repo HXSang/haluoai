@@ -137,6 +137,7 @@ model Account {
   isCookieActive Boolean @default(false) @map("is_cookie_active")
   lastLoginAt DateTime? @map("last_login_at")
   isActive Boolean @default(true) @map("is_active")
+  lastOpenAt DateTime? @map("last_open_at")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")

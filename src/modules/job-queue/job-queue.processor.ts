@@ -7,14 +7,14 @@ import { VideoResultService } from '@n-modules/video-result/video-result.service
 import { AccountRepository } from '@n-modules/account/account.repository';
 import { QueueStatus } from '@prisma/client';
 import { JobQueueRepository } from './job-queue.repository';
-    
+
 @Injectable()
 export class JobQueueProcessor {
   private readonly logger = new Logger(JobQueueProcessor.name);
   private isProcessing = false;
   private isGettingVideos = false;
-  private isActiveJobQueue = process.env.ACTIVE_JOB_QUEUE === 'true';
-  // private isActiveJobQueue = true;
+  // private isActiveJobQueue = process.env.ACTIVE_JOB_QUEUE === 'true';
+  private isActiveJobQueue = true;
   constructor(
     private readonly jobQueueService: JobQueueService,
     private readonly hailouService: HailuoService,
@@ -43,18 +43,23 @@ export class JobQueueProcessor {
       try {
         // if job have account id should check account available
         if (job.accountId) {
+          // 3 minutes ago
+          const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
           const account = await this.accountRepository.findFirst({
             where: {
               id: job.accountId,
+              lastOpenAt: {
+                lte: threeMinutesAgo,
+              },
             },
             select: {
               isActive: true,
             },
           });
-          if (!account) { 
+          if (!account) {
             this.logger.log('Account not found');
             return;
-          } 
+          }
           if (!account.isActive) {
             this.logger.log('Account not active');
             return;
@@ -98,8 +103,10 @@ export class JobQueueProcessor {
       return;
     }
     this.isGettingVideos = true;
+
     try {
       const accounts = await this.accountService.findActiveAccounts();
+
       const jobQueues = await this.jobQueueRepository.findMany({
         orderBy: {
           createdAt: 'desc',
@@ -109,10 +116,14 @@ export class JobQueueProcessor {
       console.log('Found total accounts: ', accounts.length);
       console.log('Found total jobQueues: ', jobQueues.length);
       for (const account of accounts) {
-        console.log('Syncing videos for account: ', account.email);
-        await this.accountService.syncAccountVideos(account.id, jobQueues);
+        try {
+          await this.accountService.updateLastOpenAt(account.id);
+        } catch (error) {
+          this.logger.error(`Error in getVideosList: ${error.message}`);
+        } finally {
+          await this.accountService.updateLastOpenAt(account.id);
+        }
       }
-
     } catch (error) {
       this.logger.error(`Error in getVideosList: ${error.message}`);
     } finally {
@@ -122,15 +133,15 @@ export class JobQueueProcessor {
 
   // refresh browser profile
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async refreshBrowserProfile() { 
+  async refreshBrowserProfile() {
     this.logger.log('refreshBrowserProfile at ' + new Date().toISOString());
     const accounts = await this.accountService.findActiveAccounts();
 
     for (const account of accounts) {
       await this.accountService.getBrowserCookie(account.id);
-    } 
+    }
 
-    this.logger.log('Browser profile refreshed successfully');  
+    this.logger.log('Browser profile refreshed successfully');
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
