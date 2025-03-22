@@ -48,9 +48,10 @@ export class JobQueueProcessor {
           const account = await this.accountRepository.findFirst({
             where: {
               id: job.accountId,
-              lastOpenAt: {
-                lte: threeMinutesAgo,
-              },
+              OR: [
+                { lastOpenAt: { lte: threeMinutesAgo } },
+                { lastOpenAt: null },
+              ],
             },
             select: {
               isActive: true,
