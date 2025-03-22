@@ -128,7 +128,7 @@ export class JobQueueService {
     // if job.accountId is null, then we need to find the random account
     let account: Account;
     if (job.accountId) {
-      account = await this.accountService.findOne(job.accountId);
+      account = await this.accountService.findOneActive(job.accountId);
     } else {
       account = await this.accountService.findRandomActiveAccount();
       // update job queue with account id
@@ -153,7 +153,7 @@ export class JobQueueService {
     // }
 
     console.log(
-      `[ProcessJob] Processing job ${id} for account ${account.email}`,
+      `[ProcessJob] Processing job ${id} for account ${account.email}, lastOpenAt: ${account.lastOpenAt}`,
     );
 
     const result = await this.hailuoService.processJob(account, job);
