@@ -108,6 +108,8 @@ export class JobQueueProcessor {
     try {
       const accounts = await this.accountService.findActiveAccounts();
 
+      console.log('Handle getVideosList total accounts: ', accounts.length);
+
       const jobQueues = await this.jobQueueRepository.findMany({
         orderBy: {
           createdAt: 'desc',
