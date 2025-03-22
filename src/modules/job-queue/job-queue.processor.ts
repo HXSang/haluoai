@@ -14,6 +14,7 @@ export class JobQueueProcessor {
   private isProcessing = false;
   private isGettingVideos = false;
   private isActiveJobQueue = process.env.ACTIVE_JOB_QUEUE === 'true';
+  // private isActiveJobQueue = true;
   constructor(
     private readonly jobQueueService: JobQueueService,
     private readonly hailouService: HailuoService,

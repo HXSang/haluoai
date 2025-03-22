@@ -23,6 +23,12 @@ export class JobQueueController {
     return this.jobQueueService.findAll(filterJobQueueDto);
   }
 
+  // get pending job
+  @Get('/pending')
+  getPendingJob() {
+    return this.jobQueueService.findPendingJob();
+  }
+
   @Post('/:id/process')
   process(@Param('id') id: string) {
     return this.jobQueueService.process(+id);

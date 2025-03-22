@@ -686,6 +686,7 @@ export class HailuoService {
               width: asset.width,
               height: asset.height,
               hasVoice: asset.hasVoice,
+              message: asset?.message,
               modelId: asset.modelID,
               userId: asset.userID.toString(),
               createType: asset.createType,

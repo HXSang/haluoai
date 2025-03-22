@@ -10,9 +10,9 @@ import { AccountService } from '@n-modules/account/account.service';
 @Injectable()
 export class JobQueueService {
   constructor(
-    private readonly jobQueueRepository: JobQueueRepository,  
+    private readonly jobQueueRepository: JobQueueRepository,
     private readonly hailuoService: HailuoService,
-    private readonly accountService: AccountService,  
+    private readonly accountService: AccountService,
   ) {}
 
   async create(createJobQueueDto: CreateJobQueueDto, user: User) {
@@ -71,8 +71,12 @@ export class JobQueueService {
     return this.jobQueueRepository.findFirst({
       where: {
         status: {
-          in: [QueueStatus.PENDING, QueueStatus.PROCESSING]
+          in: [QueueStatus.PENDING, QueueStatus.PROCESSING],
         },
+        OR: [
+          { startAt: null },
+          { startAt: { lt: new Date() } },
+        ],
       },
       orderBy: {
         createdAt: 'asc',
@@ -114,12 +118,16 @@ export class JobQueueService {
     //   };
     // }
 
-    // if job.accountId is null, then we need to find the random account  
+    // if job.accountId is null, then we need to find the random account
     let account: Account;
     if (job.accountId) {
       account = await this.accountService.findOne(job.accountId);
     } else {
       account = await this.accountService.findRandomActiveAccount();
+      // update job queue with account id
+      await this.jobQueueRepository.update(id, {
+        accountId: account.id,
+      });
     }
 
     // if account have no cookie, then we need to return failed
@@ -131,14 +139,19 @@ export class JobQueueService {
     //   };
     // }
 
-    console.log(`[ProcessJob] Processing job ${id} for account ${account.email}`);
+    console.log(
+      `[ProcessJob] Processing job ${id} for account ${account.email}`,
+    );
 
     const result = await this.hailuoService.processJob(account, job);
 
     // update generatedTimes
     let newGenerateTimes = job.generatedTimes + result.actualGenerateTimes;
     newGenerateTimes = Math.min(newGenerateTimes, job.generateTimes);
-    const newStatus = newGenerateTimes >= job.generateTimes ? QueueStatus.COMPLETED : QueueStatus.PROCESSING;
+    const newStatus =
+      newGenerateTimes >= job.generateTimes
+        ? QueueStatus.COMPLETED
+        : QueueStatus.PROCESSING;
     await this.jobQueueRepository.update(id, {
       generatedTimes: newGenerateTimes,
       status: newStatus,

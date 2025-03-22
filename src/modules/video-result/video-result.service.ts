@@ -57,9 +57,14 @@ export class VideoResultService {
         account: true,
         jobQueue: true,
       },
-      orderBy: {
-        createTime: 'desc',
-      },
+      orderBy: [
+        {
+          createTime: 'desc',
+        },
+        {
+          id: 'desc',
+        }
+      ],
     }); 
 
     // Transform BigInt to string in the response
@@ -72,14 +77,14 @@ export class VideoResultService {
   }
 
   async findAllImages(filterVideoResultDto: FilterVideoResultDto) {
-    const { accountId, jobQueueId, userId, isMarked } = filterVideoResultDto;
-    const result = await this.videoResultRepository.findMany({
+    const { accountId, jobQueueId, userId, isMarked, page, limit } = filterVideoResultDto;
+    const result = await this.videoResultRepository.groupByPagination({
+      page,
+      limit,
+      by: ['promptImgUrl', 'id'],
       where: {
         ...(accountId && { accountId: accountId }),
         ...(isMarked && { isMarked: true }),
-      },
-      select: {
-        promptImgUrl: true,
       },
     });
     return result;
