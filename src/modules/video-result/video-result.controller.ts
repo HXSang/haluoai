@@ -22,6 +22,12 @@ export class VideoResultController {
     return this.videoResultService.findAll(filterVideoResultDto);
   }
 
+  // auto delete video
+  @Get('/auto-delete')
+  autoDeleteVideo() {
+    return this.videoResultService.autoDeleteVideo();
+  }
+
 
   @Get("/all-images")
   findAllImages(@Query() filterVideoResultDto: FilterVideoResultDto) {

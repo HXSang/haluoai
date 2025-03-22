@@ -184,6 +184,7 @@ model VideoResult {
   width     Int       @map("width")
   height    Int       @map("height")
   hasVoice  Boolean   @map("has_voice")
+  message   String?   @map("message")
   modelId   String    @map("model_id")
   userId    String    @map("user_id")
   createType Int      @map("create_type")
