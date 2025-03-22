@@ -23,6 +23,7 @@ export class JobQueueService {
       generateTimes: createJobQueueDto.generateTimes,
       accountId: createJobQueueDto.accountId,
       userId: user.id,
+      modelId: createJobQueueDto.modelId,
     });
   }
 
