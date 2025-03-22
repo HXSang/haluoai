@@ -168,7 +168,7 @@ export class PrismaService
           },
         };
         if (newInclude[key].include) {
-          newInclude[key].include = this.applyDeletedFilterToInclude(newInclude[key].include);
+          // newInclude[key].include = this.applyDeletedFilterToInclude(newInclude[key].include);
         }
       }
     }

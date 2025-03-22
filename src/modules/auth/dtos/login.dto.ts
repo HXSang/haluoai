@@ -13,7 +13,7 @@ export class LoginDto {
   // @ValidateIf((dto: LoginDto) => dto.authType === AuthType.EMAIL)
   @IsNotEmpty({ message: 'Password is required for EMAIL authentication' })
   @IsString()
-  @ApiProperty({ example: '123456', required: false })
+  @ApiProperty({ example: 'color1234', required: false })
     password?: string;
 
   // @ValidateIf((dto: LoginDto) => dto.authType === AuthType.GOOGLE)

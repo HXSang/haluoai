@@ -58,7 +58,51 @@ const permissions = [
     {
         name: 'REMOVE_PERMISSION',
         description: 'Permission to remove permissions from roles'
-    }
+    },
+
+    // account
+    {
+        name: 'GET_ACCOUNT',
+        description: 'Permission to view a single account and its details'
+    },
+    {
+        name: 'GET_ACCOUNTS',
+        description: 'Permission to view list of all accounts'
+    },
+    {
+        name: 'CREATE_ACCOUNT',
+        description: 'Permission to create new accounts in the system'
+    },
+    {
+        name: 'UPDATE_ACCOUNT',
+        description: 'Permission to modify existing account details'
+    },
+    {
+        name: 'DELETE_ACCOUNT',
+        description: 'Permission to remove accounts from the system'
+    },
+    
+    // user
+    {
+        name: 'GET_USER',
+        description: 'Permission to view a single user and its details'
+    },
+    {
+        name: 'GET_USERS',
+        description: 'Permission to view list of all users'
+    },
+    {
+        name: 'CREATE_USER',
+        description: 'Permission to create new users in the system'
+    },
+    {
+        name: 'UPDATE_USER',
+        description: 'Permission to modify existing user details'
+    },
+    {
+        name: 'DELETE_USER',
+        description: 'Permission to remove users from the system'
+    },
 ]
 
 
