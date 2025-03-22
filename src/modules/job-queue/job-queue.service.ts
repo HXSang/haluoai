@@ -132,9 +132,15 @@ export class JobQueueService {
     } else {
       account = await this.accountService.findRandomActiveAccount();
       // update job queue with account id
+    }
+
+    if (account) {
       await this.jobQueueRepository.update(id, {
         accountId: account.id,
       });
+    } else {
+      await this.markAsPending(id);
+      return true;
     }
 
     // if account have no cookie, then we need to return failed

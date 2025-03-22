@@ -41,10 +41,7 @@ export class AccountService {
       where: {
         isActive: true,
         isCookieActive: true,
-        OR: [
-          { lastOpenAt: { lte: twoMinutesAgo } },
-          { lastOpenAt: null },
-        ],
+        OR: [{ lastOpenAt: { lte: twoMinutesAgo } }, { lastOpenAt: null }],
       },
     });
   }
@@ -87,15 +84,18 @@ export class AccountService {
       throw new Error('Account not found');
     }
     const videosResponse = await this.hailouService.getVideosList(account);
-    
 
     if (videosResponse.success && videosResponse.data) {
       // Create video results in database
       const createdVideos = await Promise.all(
         videosResponse.data.map(async (video) => {
           // find jobqueue promt match video description
-          const jobQueue = availableJobQueue ? availableJobQueue?.find(job => job.prompt.trim() === video.description.trim()) : null;
-          if (jobQueue && jobQueue?.userId){
+          const jobQueue = availableJobQueue
+            ? availableJobQueue?.find(
+                (job) => job.prompt.trim() === video.description.trim(),
+              )
+            : null;
+          if (jobQueue && jobQueue?.userId) {
             video.creatorId = jobQueue.userId;
           }
           // exist video result
@@ -135,10 +135,12 @@ export class AccountService {
   }
 
   async findRandomActiveAccount() {
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     const accounts = await this.accountRepository.findManyRandom(1, {
       where: {
         isActive: true,
         isCookieActive: true,
+        OR: [{ lastOpenAt: { lte: twoMinutesAgo } }, { lastOpenAt: null }],
       },
     });
     return accounts[0];
@@ -148,6 +150,19 @@ export class AccountService {
     return await this.accountRepository.findUnique({
       where: {
         id: id,
+      },
+    });
+  }
+
+  // find one active account
+  async findOneActive(id: number) {
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    return await this.accountRepository.findFirst({
+      where: {
+        id: id,
+        isActive: true,
+        isCookieActive: true,
+        OR: [{ lastOpenAt: { lte: twoMinutesAgo } }, { lastOpenAt: null }],
       },
     });
   }
