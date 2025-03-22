@@ -95,57 +95,57 @@ export class JobQueueProcessor {
     }
   }
 
-  //job run getVideosList
-  @Cron(CronExpression.EVERY_MINUTE)
-  async getVideosList() {
-    this.logger.log('getVideosList at ' + new Date().toISOString());
-    if (!this.isActiveJobQueue || this.isGettingVideos) {
-      return;
-    }
-    this.isGettingVideos = true;
+  // //job run getVideosList
+  // @Cron(CronExpression.EVERY_MINUTE)
+  // async getVideosList() {
+  //   this.logger.log('getVideosList at ' + new Date().toISOString());
+  //   if (!this.isActiveJobQueue || this.isGettingVideos) {
+  //     return;
+  //   }
+  //   this.isGettingVideos = true;
 
-    try {
-      const accounts = await this.accountService.findActiveAccounts();
+  //   try {
+  //     const accounts = await this.accountService.findActiveAccounts();
 
-      const jobQueues = await this.jobQueueRepository.findMany({
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: 10,
-      });
-      console.log('Found total accounts: ', accounts.length);
-      console.log('Found total jobQueues: ', jobQueues.length);
-      for (const account of accounts) {
-        try {
-          await this.accountService.updateLastOpenAt(account.id);
-        } catch (error) {
-          this.logger.error(`Error in getVideosList: ${error.message}`);
-        } finally {
-          await this.accountService.updateLastOpenAt(account.id);
-        }
-      }
-    } catch (error) {
-      this.logger.error(`Error in getVideosList: ${error.message}`);
-    } finally {
-      this.isGettingVideos = false;
-    }
-  }
+  //     const jobQueues = await this.jobQueueRepository.findMany({
+  //       orderBy: {
+  //         createdAt: 'desc',
+  //       },
+  //       take: 10,
+  //     });
+  //     console.log('Found total accounts: ', accounts.length);
+  //     console.log('Found total jobQueues: ', jobQueues.length);
+  //     for (const account of accounts) {
+  //       try {
+  //         await this.accountService.updateLastOpenAt(account.id);
+  //       } catch (error) {
+  //         this.logger.error(`Error in getVideosList: ${error.message}`);
+  //       } finally {
+  //         await this.accountService.updateLastOpenAt(account.id);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     this.logger.error(`Error in getVideosList: ${error.message}`);
+  //   } finally {
+  //     this.isGettingVideos = false;
+  //   }
+  // }
 
-  // refresh browser profile
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async refreshBrowserProfile() {
-    this.logger.log('refreshBrowserProfile at ' + new Date().toISOString());
-    const accounts = await this.accountService.findActiveAccounts();
+  // // refresh browser profile
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // async refreshBrowserProfile() {
+  //   this.logger.log('refreshBrowserProfile at ' + new Date().toISOString());
+  //   const accounts = await this.accountService.findActiveAccounts();
 
-    for (const account of accounts) {
-      await this.accountService.getBrowserCookie(account.id);
-    }
+  //   for (const account of accounts) {
+  //     await this.accountService.getBrowserCookie(account.id);
+  //   }
 
-    this.logger.log('Browser profile refreshed successfully');
-  }
+  //   this.logger.log('Browser profile refreshed successfully');
+  // }
 
-  @Cron(CronExpression.EVERY_MINUTE)
-  async autoDeleteVideo() {
-    await this.videoResultService.autoDeleteVideo();
-  }
+  // @Cron(CronExpression.EVERY_MINUTE)
+  // async autoDeleteVideo() {
+  //   await this.videoResultService.autoDeleteVideo();
+  // }
 }

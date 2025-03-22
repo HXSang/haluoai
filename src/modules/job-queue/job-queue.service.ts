@@ -41,6 +41,7 @@ export class JobQueueService {
       },
       include: {
         account: true,
+        user: true,
       },
     });
   }
