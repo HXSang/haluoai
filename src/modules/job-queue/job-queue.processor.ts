@@ -132,7 +132,9 @@ export class JobQueueProcessor {
         orderBy: {
           createdAt: 'desc',
         },
-        status: QueueStatus.COMPLETED,
+        where: {
+          status: QueueStatus.COMPLETED,
+        },
         take: 5,
       });
 
