@@ -34,4 +34,13 @@ export class CreateAccountDto {
     example: true,
   })
   isActive: boolean;
+
+
+  @IsNotEmpty()
+  @IsBoolean()
+  @ApiProperty({
+    description: 'The is cookie active of the account',
+    example: true,
+  })
+  isCookieActive: boolean;
 }

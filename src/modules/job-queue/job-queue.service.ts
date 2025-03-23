@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobQueueDto } from './dto/create-job-queue.dto';
 import { UpdateJobQueueDto } from './dto/update-job-queue.dto';
 import { JobQueueRepository } from './job-queue.repository';
-import { Account, QueueStatus, User } from '@prisma/client';
+import { Account, JobQueue, QueueStatus, User } from '@prisma/client';
 import { FilterJobQueueDto } from './dto/filter-job-queue.dto';
 import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { AccountService } from '@n-modules/account/account.service';
@@ -189,5 +189,31 @@ export class JobQueueService {
     await this.accountService.updateLastOpenAt(account.id);
 
     return result;
+  }
+
+  async findPendingJobsGroupedByAccount(): Promise<{ [key: string]: JobQueue[] }> {
+    const pendingJobs = await this.jobQueueRepository.findMany({
+      where: {
+        status: {
+          in: [QueueStatus.PENDING, QueueStatus.PROCESSING],
+        },
+        OR: [{ startAt: null }, { startAt: { lt: new Date() } }],
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    // Group jobs by accountId
+    const groupedJobs = pendingJobs.reduce<{ [key: string]: JobQueue[] }>((acc, job) => {
+      const accountId = job.accountId?.toString() || 'unassigned';
+      if (!acc[accountId]) {
+        acc[accountId] = [];
+      }
+      acc[accountId].push(job);
+      return acc;
+    }, {});
+
+    return groupedJobs;
   }
 }
