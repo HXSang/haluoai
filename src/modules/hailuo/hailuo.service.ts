@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Account, JobQueue } from '@prisma/client';
 import { PrismaService } from '@n-database/prisma/prisma.service';
+import { downloadImage } from '@n-utils/helper';
 
 interface BrowserProfile {
   cookies: any[];
@@ -649,7 +650,7 @@ export class HailuoService {
     let videoResults = [];
     
     try {
-      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, undefined, 'getVideosList');
+      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, { headless: true }, 'getVideosList');
 
       console.log('initializedBrowser getVideosList');
 
@@ -882,10 +883,7 @@ export class HailuoService {
 
         // Download the image from URL and save it temporarily
         console.log('[ProcessJob] Downloading image...');
-        const response = await fetch(imageUrl);
-        const buffer = await response.arrayBuffer();
-        const tempFilePath = path.join(process.cwd(), 'temp-image.jpg');
-        fs.writeFileSync(tempFilePath, Buffer.from(buffer));
+        const tempFilePath = await downloadImage(imageUrl); 
         console.log('[ProcessJob] Image downloaded');
 
         // Upload the file
@@ -914,7 +912,7 @@ export class HailuoService {
         }
 
         // Clean up temporary file
-        fs.unlinkSync(tempFilePath);
+        // fs.unlinkSync(tempFilePath);
         console.log('[ProcessJob] Temp file cleaned');
 
         // Wait for upload to complete and input to be ready

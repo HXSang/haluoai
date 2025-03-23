@@ -6,6 +6,7 @@ import { PrismaService } from "@n-database/prisma/prisma.service";
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import axios from 'axios';
+import { downloadImage } from "@n-utils/helper";
 
 const execPromise = promisify(exec);
 
@@ -466,5 +467,10 @@ export class HailuoApiService {
         }
         
         return cookieObj;
+    }
+
+
+    async downloadImage(imageUrl: string) {
+        return await downloadImage(imageUrl);
     }
 }

@@ -35,4 +35,9 @@ export class HailuoController {
   async getVideosListExactAxios() {
     return await this.hailuoApiService.getVideosListExactAxios();
   }
+
+  @Get('download-image')
+  async downloadImage(@Query('imageUrl') imageUrl: string) {
+    return await this.hailuoApiService.downloadImage(imageUrl);
+  }
 }
