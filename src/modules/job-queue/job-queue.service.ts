@@ -88,6 +88,12 @@ export class JobQueueService {
   }
 
   async markAsProcessing(id: number) {
+    const queue = await this.findOne(id);
+    if (!queue.startAt) {
+      await this.jobQueueRepository.update(id, {
+        startAt: new Date(),
+      });
+    }
     return this.jobQueueRepository.update(id, {
       status: QueueStatus.PROCESSING,
     });

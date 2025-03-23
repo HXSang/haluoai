@@ -135,7 +135,7 @@ export class JobQueueProcessor {
         take: 10,
       });
 
-      await Promise.all(accounts.map(async (accountRaw) => {
+      for (const accountRaw of accounts) {
         const account = await this.getOrCheckAccount(accountRaw.id);
         if (!account) {
           return;
@@ -147,9 +147,8 @@ export class JobQueueProcessor {
           this.logger.error(`Error in getVideosList: ${error.message}`);
         } finally {
           this.releaseAccountLock(account.id);
-          }
-        })
-      );
+        }
+      }
     } catch (error) {
       this.logger.error(`Error in getVideosList: ${error.message}`);
     } finally {
