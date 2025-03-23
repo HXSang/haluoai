@@ -118,10 +118,17 @@ export class JobQueueService {
     });
   }
 
-  async process(id: number, accountId: number) {
+  async process(id: number, accountId?: number) {
     const job = await this.findOne(id);
 
-    const account = await this.accountService.findOneActive(accountId); 
+    let account: Account;
+    if (accountId) {
+      account = await this.accountService.findOneActive(accountId); 
+    } else if (job.accountId) {
+      account = await this.accountService.findOneActive(job.accountId);
+    } else {
+      account = await this.accountService.findRandomActiveAccount();
+    }
 
     await this.jobQueueRepository.update(id, {
       accountId: accountId,
