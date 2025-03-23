@@ -912,7 +912,7 @@ export class HailuoService {
         }
 
         // Clean up temporary file
-        // fs.unlinkSync(tempFilePath);
+        fs.unlinkSync(tempFilePath);
         console.log('[ProcessJob] Temp file cleaned');
 
         // Wait for upload to complete and input to be ready
