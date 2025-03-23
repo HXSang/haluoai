@@ -83,6 +83,7 @@ export class JobQueueProcessor {
       }
 
       try {
+        console.log('Handle job: ', job.id);
         await this.jobQueueService.markAsProcessing(job.id);
 
         await this.jobQueueService.process(job.id, account.id);
