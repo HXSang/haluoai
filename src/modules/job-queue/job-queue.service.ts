@@ -24,13 +24,12 @@ export class JobQueueService {
       accountId: createJobQueueDto.accountId,
       userId: user.id,
       modelId: createJobQueueDto.modelId,
+      note: createJobQueueDto.note,
     });
   }
 
   async findAll(filterJobQueueDto: FilterJobQueueDto) {
     const { page, limit, search, accountId, userId } = filterJobQueueDto;
-    console.log("accountId", accountId);
-    console.log("userId", userId);
     return this.jobQueueRepository.paginate({
       page,
       limit,
@@ -78,12 +77,9 @@ export class JobQueueService {
     return this.jobQueueRepository.findFirst({
       where: {
         status: {
-          in: [QueueStatus.PENDING, QueueStatus.PROCESSING],
+          in: [QueueStatus.PENDING],
         },
-        OR: [
-          { startAt: null },
-          { startAt: { lt: new Date() } },
-        ],
+        OR: [{ startAt: null }, { startAt: { lt: new Date() } }],
       },
       orderBy: {
         createdAt: 'asc',
@@ -103,9 +99,10 @@ export class JobQueueService {
     });
   }
 
-  async markAsFailed(id: number) {
+  async markAsFailed(id: number, message?: string) {
     return this.jobQueueRepository.update(id, {
       status: QueueStatus.FAILED,
+      message,
     });
   }
 
@@ -117,21 +114,12 @@ export class JobQueueService {
 
   async process(id: number) {
     const job = await this.findOne(id);
-
-    // if (job.status === QueueStatus.COMPLETED) {
-    //   return {
-    //     success: true,
-    //     message: 'Job already completed',
-    //   };
-    // }
-
     // if job.accountId is null, then we need to find the random account
     let account: Account;
     if (job.accountId) {
       account = await this.accountService.findOneActive(job.accountId);
     } else {
       account = await this.accountService.findRandomActiveAccount();
-      // update job queue with account id
     }
 
     if (account) {
@@ -158,6 +146,7 @@ export class JobQueueService {
     );
 
     const result = await this.hailuoService.processJob(account, job);
+    let message = '';
 
     // update generatedTimes
     let newGenerateTimes = job.generatedTimes + result.actualGenerateTimes;
@@ -165,10 +154,16 @@ export class JobQueueService {
     const newStatus =
       newGenerateTimes >= job.generateTimes
         ? QueueStatus.COMPLETED
-        : QueueStatus.PROCESSING;
+        : QueueStatus.PENDING;
+
+    if (result.actualGenerateTimes === 0 && newStatus === QueueStatus.PENDING) {
+      message = 'Account has reached max queue number, continue waiting...';
+    }
+
     await this.jobQueueRepository.update(id, {
       generatedTimes: newGenerateTimes,
       status: newStatus,
+      message,
     });
 
     // update account lastOpenAt

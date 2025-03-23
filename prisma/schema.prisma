@@ -160,6 +160,8 @@ model JobQueue {
   modelId String? @map("model_id")
   userId Int? @map("user_id")
   startAt DateTime? @map("start_at")
+  message String? @map("message")
+  note String? @map("note")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")

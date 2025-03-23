@@ -6,6 +6,9 @@ import { AccountService } from '@n-modules/account/account.service';
 import { VideoResultService } from '@n-modules/video-result/video-result.service';
 import { AccountRepository } from '@n-modules/account/account.repository';
 import { JobQueueRepository } from './job-queue.repository';
+import { Account } from '@prisma/client';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class JobQueueProcessor {
@@ -14,6 +17,7 @@ export class JobQueueProcessor {
   private isGettingVideos = false;
   private isActiveJobQueue = process.env.ACTIVE_JOB_QUEUE === 'true';
   // private isActiveJobQueue = false;
+  private accountRunningStatus: { [key: number]: boolean } = {};
   constructor(
     private readonly jobQueueService: JobQueueService,
     private readonly hailouService: HailuoService,
@@ -22,6 +26,36 @@ export class JobQueueProcessor {
     private readonly videoResultService: VideoResultService,
     private readonly jobQueueRepository: JobQueueRepository,
   ) {}
+
+  async getOrCheckAccount(accountId?: number) {
+    console.log('getOrCheckAccount: ', accountId);
+    console.log('accountRunningStatus: ', this.accountRunningStatus);
+    let account: Account;
+    if (accountId) {
+      account = await this.accountService.findOneActive(accountId);
+    } else {
+      account = await this.accountService.findRandomActiveAccount();
+    }
+
+    if (!account) {
+      return null;
+    }
+
+    // Check if account is running
+    if (this.accountRunningStatus[account.id]) {
+      this.logger.log(`Account ${account.id} is already running. Skipping.`);
+      return null;
+    } else {
+      this.accountRunningStatus[account.id] = true;
+    }
+
+    return account;
+  }
+
+  // Helper method to release account status
+  private releaseAccountLock(accountId: number) {
+    this.accountRunningStatus[accountId] = false;
+  }
 
   @Cron(CronExpression.EVERY_30_SECONDS)
   async processJobs() {
@@ -34,8 +68,17 @@ export class JobQueueProcessor {
       this.isProcessing = true;
       const job = await this.jobQueueService.findPendingJob();
 
+      console.log('Found job: ', job);
+
       if (!job) {
         this.logger.log('No pending job found');
+        return;
+      }
+      
+      const account = await this.getOrCheckAccount(job.accountId);
+
+      if (!account) {
+        this.logger.log('No active account found');
         return;
       }
 
@@ -56,11 +99,13 @@ export class JobQueueProcessor {
           this.logger.warn(`Job ${job.id} skipped: ${error.message}`);
           await this.jobQueueService.markAsPending(job.id); // Reset back to pending
         } else {
-          await this.jobQueueService.markAsFailed(job.id);
+          await this.jobQueueService.markAsFailed(job.id, error.message);
           this.logger.error(
             `Failed to process job ${job.id}: ${error.message}`,
           );
         }
+      } finally {
+        this.releaseAccountLock(account.id);
       }
     } catch (error) {
       this.logger.error(`Error in job processing: ${error.message}`);
@@ -90,14 +135,21 @@ export class JobQueueProcessor {
         take: 10,
       });
 
-      for (const account of accounts) {
+      await Promise.all(accounts.map(async (accountRaw) => {
+        const account = await this.getOrCheckAccount(accountRaw.id);
+        if (!account) {
+          return;
+        }
         try {
           await this.accountService.updateLastOpenAt(account.id);
           await this.accountService.syncAccountVideos(account.id, jobQueues);
         } catch (error) {
           this.logger.error(`Error in getVideosList: ${error.message}`);
-        } 
-      }
+        } finally {
+          this.releaseAccountLock(account.id);
+          }
+        })
+      );
     } catch (error) {
       this.logger.error(`Error in getVideosList: ${error.message}`);
     } finally {
@@ -112,7 +164,17 @@ export class JobQueueProcessor {
     const accounts = await this.accountService.findActiveAccounts();
 
     for (const account of accounts) {
-      await this.accountService.getBrowserCookie(account.id);
+      const lockedAccount = await this.getOrCheckAccount(account.id);
+      if (!lockedAccount) {
+        this.logger.log(`Skipping refreshBrowserProfile for account ${account.id} as it's locked`);
+        continue;
+      }
+      
+      try {
+        await this.accountService.getBrowserCookie(account.id);
+      } finally {
+        this.releaseAccountLock(account.id);
+      }
     }
 
     this.logger.log('Browser profile refreshed successfully');
@@ -123,11 +185,11 @@ export class JobQueueProcessor {
     await this.videoResultService.autoDeleteVideo();
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async removeOldProfile() {
-    const accounts = await this.accountService.findActiveAccounts();
-    for (const account of accounts) {
-      await this.hailouService.removeOldProfile(account.id);
-    }
-  }
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // async removeOldProfile() {
+  //   const accounts = await this.accountService.findActiveAccounts();
+  //   for (const account of accounts) {
+  //     await this.hailouService.removeOldProfile(account.id);
+  //   }
+  // }
 }

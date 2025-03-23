@@ -51,20 +51,8 @@ export class HailuoService {
       console.log('lockFile: ', lockFile);
       console.log('singletonFile: ', singletonFile);
 
-      // Check for and kill any running Chrome processes if needed
-      try {
-        const { execSync } = require('child_process');
-        // Find Chrome processes that might be using this profile
-        execSync('pkill -f "browser-data-"').toString();
-        console.log('Killed any running Chrome processes');
-        this.logger.log('Killed any running Chrome processes');
-      } catch (processError) {
-        // Ignore errors here as there might not be any processes
-        console.log('No Chrome processes needed to be killed');
-      }
-
-      // Wait a moment to ensure processes are terminated
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Note: We no longer kill Chrome processes as that is managed by JobQueueProcessor
+      // JobQueueProcessor's accountRunningStatus prevents multiple jobs from accessing the same account
 
       // Remove lock files with proper error handling
       const filesToRemove = [lockFile, singletonFile, leveldbLockFile];
@@ -121,9 +109,9 @@ export class HailuoService {
     }
   }
 
-  private async initializeBrowser(account: Account, options: { headless?: boolean } = {}) {
+  private async initializeBrowser(account: Account, options: { headless?: boolean } = {}, action?: string) {
     const currentDate = new Date().toISOString().split('T')[0];
-    const userDataDir = path.join(process.cwd(), `browser-data-${account.id}-${currentDate}`);
+    const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
     let browser;
     
     // Unlock the profile if it's locked
@@ -661,148 +649,189 @@ export class HailuoService {
     let videoResults = [];
     
     try {
-      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account);
+      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, undefined, 'getVideosList');
 
       console.log('initializedBrowser getVideosList');
 
       browser = initializedBrowser;
       page = initializedPage;
 
-      // Enable request interception
-      await page.setRequestInterception(true);
+      // Wrap all browser operations in a try/catch to ensure proper cleanup
+      try {
+        // Enable request interception
+        await page.setRequestInterception(true);
 
-      // Listen for network requests
-      page.on('request', request => {
-        request.continue();
-      });
+        // Listen for network requests
+        page.on('request', request => {
+          request.continue();
+        });
 
-      // Create a promise to store API response
-      const apiResponsePromise = new Promise((resolve) => {
-        page.on('response', async response => {
-          const url = response.url();
-          if (url.includes('/v3/api/multimodal/video/my/batchCursor')) {
-            try {
-              const responseData = await response.json();
-              resolve(responseData);
-            } catch (error) {
-              console.error('Error parsing response:', error);
-              resolve(null);
+        // Create a promise to store API response
+        const apiResponsePromise = new Promise((resolve) => {
+          page.on('response', async response => {
+            const url = response.url();
+            if (url.includes('/v3/api/multimodal/video/my/batchCursor')) {
+              try {
+                const responseData = await response.json();
+                resolve(responseData);
+              } catch (error) {
+                console.error('Error parsing response:', error);
+                resolve(null);
+              }
             }
-          }
+          });
         });
-      });
 
-      // Navigate to create page
-      await page.goto('https://hailuoai.video/create', {
-        waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 60000,
-      });
+        // Navigate to create page
+        await page.goto('https://hailuoai.video/create', {
+          waitUntil: ['domcontentloaded', 'networkidle0'],
+          timeout: 60000,
+        });
 
-      // Khôi phục browserProfile sau khi điều hướng nếu có
-      if (browserProfile) {
-        await this.restoreBrowserProfile(page, browserProfile);
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-
-      // Check if user is logged in by looking for avatar
-      console.log('Checking login status...');
-      const isLoggedIn = await page.evaluate(() => {
-        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
-        return !!avatarImg;
-      });
-
-      if (!isLoggedIn) {
-        console.log('User is not logged in');
-        
-        // Take a screenshot when login error is detected
-        try {
-          const screenshotPath = `login-error-${Date.now()}.png`;
-          await page.screenshot({ path: screenshotPath });
-          console.log(`Login error screenshot saved to ${screenshotPath}`);
-          this.logger.log(`Login error screenshot saved to ${screenshotPath}`);
-        } catch (screenshotError) {
-          console.error('Failed to take login error screenshot:', screenshotError);
-          this.logger.error('Failed to take login error screenshot:', screenshotError);
+        // Khôi phục browserProfile sau khi điều hướng nếu có
+        if (browserProfile) {
+          await this.restoreBrowserProfile(page, browserProfile);
         }
-        
-        // Update account cookie status
-        await this.prisma.account.update({
-          where: { id: account.id },
-          data: { isCookieActive: false },
+
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        // Check if user is logged in by looking for avatar
+        console.log('Checking login status...');
+        const isLoggedIn = await page.evaluate(() => {
+          const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
+          return !!avatarImg;
         });
-        
-        throw new Error('User is not logged in - please login first');
-      }
 
-      console.log('User is logged in, proceeding with video list fetch');
-
-      // Wait for API response
-      const apiResponse: any = await Promise.race([
-        apiResponsePromise,
-        new Promise((_, reject) => setTimeout(() => {
-          this.prisma.account.update({
+        if (!isLoggedIn) {
+          console.log('User is not logged in');
+          
+          // Take a screenshot when login error is detected
+          try {
+            const screenshotPath = `login-error-${Date.now()}.png`;
+            await page.screenshot({ path: screenshotPath });
+            console.log(`Login error screenshot saved to ${screenshotPath}`);
+            this.logger.log(`Login error screenshot saved to ${screenshotPath}`);
+          } catch (screenshotError) {
+            console.error('Failed to take login error screenshot:', screenshotError);
+            this.logger.error('Failed to take login error screenshot:', screenshotError);
+          }
+          
+          // Close browser properly before updating account status
+          if (browser) {
+            await browser.close().catch(e => {
+              console.error('Error closing browser after login error:', e);
+            });
+            browser = null; // Set to null so we don't try to close it again in finally block
+          }
+          
+          // Update account cookie status
+          await this.prisma.account.update({
             where: { id: account.id },
             data: { isCookieActive: false },
           });
-          reject(new Error('API timeout'));
-        }, 30000))
-      ]);
+          
+          throw new Error('User is not logged in - please login first');
+        }
 
-      if (apiResponse && apiResponse.data && apiResponse.data.batchVideos) {
-        for (const batch of apiResponse.data.batchVideos) {
-          for (const asset of batch.assets) {
-            const videoResult = {
-              batchId: batch.batchID,
-              batchType: batch.batchType,
-              videoId: asset.id,
-              description: asset.desc,
-              coverUrl: asset.coverURL,
-              videoUrl: asset.videoURL,
-              downloadUrl: asset.downloadURL,
-              status: asset.status,
-              width: asset.width,
-              height: asset.height,
-              hasVoice: asset.hasVoice,
-              message: asset?.message,
-              modelId: asset.modelID,
-              userId: asset.userID.toString(),
-              createType: asset.createType,
-              promptImgUrl: asset.promptImgURL,
-              extra: asset.extra,
-              accountId: account.id,
-              createTime: String(asset.createTime),
-            };
-            videoResults.push(videoResult);
+        console.log('User is logged in, proceeding with video list fetch');
+
+        // Wait for API response
+        const apiResponse: any = await Promise.race([
+          apiResponsePromise,
+          new Promise((_, reject) => setTimeout(() => {
+            this.prisma.account.update({
+              where: { id: account.id },
+              data: { isCookieActive: false },
+            });
+            reject(new Error('API timeout'));
+          }, 30000))
+        ]);
+
+        if (apiResponse && apiResponse.data && apiResponse.data.batchVideos) {
+          for (const batch of apiResponse.data.batchVideos) {
+            for (const asset of batch.assets) {
+              const videoResult = {
+                batchId: batch.batchID,
+                batchType: batch.batchType,
+                videoId: asset.id,
+                description: asset.desc,
+                coverUrl: asset.coverURL,
+                videoUrl: asset.videoURL,
+                downloadUrl: asset.downloadURL,
+                status: asset.status,
+                width: asset.width,
+                height: asset.height,
+                hasVoice: asset.hasVoice,
+                message: asset?.message,
+                modelId: asset.modelID,
+                userId: asset.userID.toString(),
+                createType: asset.createType,
+                promptImgUrl: asset.promptImgURL,
+                extra: asset.extra,
+                accountId: account.id,
+                createTime: String(asset.createTime || new Date().getTime()),
+              };
+              videoResults.push(videoResult);
+            }
           }
         }
+
+        // Close browser properly before returning
+        if (browser) {
+          await browser.close().catch(e => {
+            console.error('Error closing browser after successful fetch:', e);
+          });
+          browser = null; // Set to null so we don't try to close it again in finally block
+        }
+
+        return {
+          success: true,
+          data: videoResults,
+          message: 'Videos list captured successfully'
+        };
+      } catch (innerError) {
+        // Handle errors during browser operations
+        console.error('Inner operation error:', innerError.message);
+        
+        // Take a screenshot if possible
+        if (page && !page.isClosed()) {
+          try {
+            const screenshotPath = `getvideos-inner-error-${Date.now()}.png`;
+            await page.screenshot({ path: screenshotPath });
+            console.log(`Error screenshot saved to ${screenshotPath}`);
+            this.logger.log(`Error screenshot saved to ${screenshotPath}`);
+          } catch (screenshotError) {
+            console.error('Failed to take error screenshot:', screenshotError);
+          }
+        }
+        
+        // Close browser gracefully
+        if (browser) {
+          await browser.close().catch(e => {
+            console.error('Error closing browser after inner error:', e);
+          });
+          browser = null; // Set to null so we don't try to close it again in finally block
+        }
+        
+        // Re-throw the error
+        throw innerError;
       }
-
-      return {
-        success: true,
-        data: videoResults,
-        message: 'Videos list captured successfully'
-      };
-
     } catch (error) {
       this.logger.error('Error getting videos list:', error);
       
-      // Take a screenshot for any error if page is available
-      if (page && !page.isClosed()) {
-        try {
-          const screenshotPath = `getvideos-error-${Date.now()}.png`;
-          await page.screenshot({ path: screenshotPath });
-          console.log(`Error screenshot saved to ${screenshotPath}`);
-          this.logger.log(`Error screenshot saved to ${screenshotPath}`);
-        } catch (screenshotError) {
-          console.error('Failed to take error screenshot:', screenshotError);
-        }
-      }
+      // No need to take screenshot here as it's handled in the inner try/catch
       
       throw new Error(`Failed to get videos list: ${error.message}`);
     } finally {
+      // Final cleanup - only if browser wasn't already closed
       if (browser) {
-        await browser.close().catch(() => {});
+        try {
+          await browser.close();
+          console.log('Browser closed in finally block');
+        } catch (closeError) {
+          console.error('Error closing browser in finally block:', closeError);
+          this.logger.error('Error closing browser in finally block:', closeError);
+        }
       }
     }
   }
@@ -828,132 +857,163 @@ export class HailuoService {
       }
 
       console.log('[ProcessJob] Initializing browser...');
-      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account);
+      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, undefined, 'processJob');
       browser = initializedBrowser;
       page = initializedPage;
 
-      // Navigate to create page
-      console.log('[ProcessJob] Navigating to create page...');
-      await page.goto('https://hailuoai.video/create', {
-        waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 60000,
-      });
-
-      // Khôi phục browserProfile sau khi điều hướng nếu có
-      if (browserProfile) {
-        await this.restoreBrowserProfile(page, browserProfile);
-      }
-
-      // Wait for the upload element to be present
-      console.log('[ProcessJob] Checking upload element selector...');
-      await page.waitForSelector('input[type="file"]');
-      console.log('[ProcessJob] Upload element found');
-
-      // Download the image from URL and save it temporarily
-      console.log('[ProcessJob] Downloading image...');
-      const response = await fetch(imageUrl);
-      const buffer = await response.arrayBuffer();
-      const tempFilePath = path.join(process.cwd(), 'temp-image.jpg');
-      fs.writeFileSync(tempFilePath, Buffer.from(buffer));
-      console.log('[ProcessJob] Image downloaded');
-
-      // Upload the file
-      console.log('[ProcessJob] Uploading file...');
-      const inputElement = await page.$('input[type="file"]');
-      await inputElement.evaluate((el) => {
-        el.style.display = 'block';
-        el.style.visibility = 'visible';
-      });
-      await inputElement.uploadFile(tempFilePath);
-      console.log('[ProcessJob] File uploaded');
-
-      // Wait for upload to complete
-      console.log('[ProcessJob] Waiting 15s for upload to process...');
-      await new Promise(resolve => setTimeout(resolve, 8000));
-      console.log('[ProcessJob] Upload processing completed');
-
-      // Check if upload was successful by looking for the uploaded image element
-      console.log('[ProcessJob] Validating upload success...');
+      // Wrap all browser operations in a try/catch to ensure proper cleanup
       try {
-        await page.waitForSelector('img[alt="uploaded image"]', { timeout: 5000 });
-        console.log('[ProcessJob] Upload validation successful');
-      } catch (error) {
-        console.error('[ProcessJob] Upload validation failed');
-        throw new Error('Image upload failed - uploaded image not found');
+        // Navigate to create page
+        console.log('[ProcessJob] Navigating to create page...');
+        await page.goto('https://hailuoai.video/create', {
+          waitUntil: ['domcontentloaded', 'networkidle0'],
+          timeout: 60000,
+        });
+
+        // Khôi phục browserProfile sau khi điều hướng nếu có
+        if (browserProfile) {
+          await this.restoreBrowserProfile(page, browserProfile);
+        }
+
+        // Wait for the upload element to be present
+        console.log('[ProcessJob] Checking upload element selector...');
+        await page.waitForSelector('input[type="file"]');
+        console.log('[ProcessJob] Upload element found');
+
+        // Download the image from URL and save it temporarily
+        console.log('[ProcessJob] Downloading image...');
+        const response = await fetch(imageUrl);
+        const buffer = await response.arrayBuffer();
+        const tempFilePath = path.join(process.cwd(), 'temp-image.jpg');
+        fs.writeFileSync(tempFilePath, Buffer.from(buffer));
+        console.log('[ProcessJob] Image downloaded');
+
+        // Upload the file
+        console.log('[ProcessJob] Uploading file...');
+        const inputElement = await page.$('input[type="file"]');
+        await inputElement.evaluate((el) => {
+          el.style.display = 'block';
+          el.style.visibility = 'visible';
+        });
+        await inputElement.uploadFile(tempFilePath);
+        console.log('[ProcessJob] File uploaded');
+
+        // Wait for upload to complete
+        console.log('[ProcessJob] Waiting 15s for upload to process...');
+        await new Promise(resolve => setTimeout(resolve, 8000));
+        console.log('[ProcessJob] Upload processing completed');
+
+        // Check if upload was successful by looking for the uploaded image element
+        console.log('[ProcessJob] Validating upload success...');
+        try {
+          await page.waitForSelector('img[alt="uploaded image"]', { timeout: 5000 });
+          console.log('[ProcessJob] Upload validation successful');
+        } catch (error) {
+          console.error('[ProcessJob] Upload validation failed');
+          throw new Error('Image upload failed - uploaded image not found');
+        }
+
+        // Clean up temporary file
+        fs.unlinkSync(tempFilePath);
+        console.log('[ProcessJob] Temp file cleaned');
+
+        // Wait for upload to complete and input to be ready
+        console.log('[ProcessJob] Checking prompt input...');
+        const promptInput = await page.waitForSelector('#video-create-textarea');
+        console.log('[ProcessJob] Prompt input found:', !!promptInput);
+
+        // Clear existing input and type the prompt
+        console.log('[ProcessJob] Setting prompt...');
+        await page.evaluate(() => {
+          const input = document.querySelector('#video-create-textarea') as HTMLTextAreaElement;
+          if (input) input.value = '';
+        });
+        await page.type('#video-create-textarea', prompt);
+        console.log('[ProcessJob] Prompt set');
+
+        // Set generate times
+        console.log('[ProcessJob] Setting generate times...');
+        const generateInput = await page.waitForSelector('.ant-input-number input.ant-input-number-input');
+        await generateInput.click({ clickCount: 3 });
+        await generateInput.type(generateTimes.toString());
+        
+        // Wait a bit for the system to adjust the value
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Get the actual value after system adjustment
+        const actualGenerateTimes = await page.evaluate(() => {
+          const input = document.querySelector('.ant-input-number input.ant-input-number-input') as HTMLInputElement;
+          return input ? parseInt(input.value) : 1;
+        });
+        console.log('[ProcessJob] Actual generate times allowed:', actualGenerateTimes);
+
+        // Wait for create button and click it
+        console.log('[ProcessJob] Finding create button...');
+        const createButton = await page.waitForSelector('.pink-gradient-btn');
+        console.log('[ProcessJob] Create button found:', !!createButton);
+        await page.click('.pink-gradient-btn');
+        console.log('[ProcessJob] Create button clicked');
+
+        // Wait for some indication of success
+        console.log('[ProcessJob] Waiting for generation to start...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log('[ProcessJob] Generation started');
+
+        // Close browser properly before returning
+        if (browser) {
+          await browser.close().catch(e => {
+            console.error('[ProcessJob] Error closing browser after successful job:', e);
+          });
+          browser = null; // Set to null so we don't try to close it again in finally block
+        }
+
+        return {
+          success: true,
+          message: 'Image uploaded and video creation initiated',
+          actualGenerateTimes
+        };
+      } catch (innerError) {
+        // Handle errors during browser operations
+        console.error('[ProcessJob] Inner operation error:', innerError.message);
+        
+        // Take a screenshot if possible
+        if (page && !page.isClosed()) {
+          try {
+            const screenshotPath = `processjob-error-${Date.now()}.png`;
+            await page.screenshot({ path: screenshotPath });
+            console.log(`[ProcessJob] Error screenshot saved to ${screenshotPath}`);
+          } catch (screenshotError) {
+            console.error('[ProcessJob] Failed to take error screenshot:', screenshotError);
+          }
+        }
+        
+        // Close browser gracefully
+        if (browser) {
+          await browser.close().catch(e => {
+            console.error('[ProcessJob] Error closing browser after inner error:', e);
+          });
+          browser = null; // Set to null so we don't try to close it again in finally block
+        }
+        
+        // Re-throw the error
+        throw innerError;
       }
-
-      // Clean up temporary file
-      fs.unlinkSync(tempFilePath);
-      console.log('[ProcessJob] Temp file cleaned');
-
-      // Wait for upload to complete and input to be ready
-      console.log('[ProcessJob] Checking prompt input...');
-      const promptInput = await page.waitForSelector('#video-create-textarea');
-      console.log('[ProcessJob] Prompt input found:', !!promptInput);
-
-      // Clear existing input and type the prompt
-      console.log('[ProcessJob] Setting prompt...');
-      await page.evaluate(() => {
-        const input = document.querySelector('#video-create-textarea') as HTMLTextAreaElement;
-        if (input) input.value = '';
-      });
-      await page.type('#video-create-textarea', prompt);
-      console.log('[ProcessJob] Prompt set');
-
-      // Set generate times
-      console.log('[ProcessJob] Setting generate times...');
-      const generateInput = await page.waitForSelector('.ant-input-number input.ant-input-number-input');
-      await generateInput.click({ clickCount: 3 });
-      await generateInput.type(generateTimes.toString());
-      
-      // Wait a bit for the system to adjust the value
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Get the actual value after system adjustment
-      const actualGenerateTimes = await page.evaluate(() => {
-        const input = document.querySelector('.ant-input-number input.ant-input-number-input') as HTMLInputElement;
-        return input ? parseInt(input.value) : 1;
-      });
-      console.log('[ProcessJob] Actual generate times allowed:', actualGenerateTimes);
-
-      // Wait for create button and click it
-      console.log('[ProcessJob] Finding create button...');
-      const createButton = await page.waitForSelector('.pink-gradient-btn');
-      console.log('[ProcessJob] Create button found:', !!createButton);
-      await page.click('.pink-gradient-btn');
-      console.log('[ProcessJob] Create button clicked');
-
-      // Wait for some indication of success
-      console.log('[ProcessJob] Waiting for generation to start...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      console.log('[ProcessJob] Generation started');
-
-      return {
-        success: true,
-        message: 'Image uploaded and video creation initiated',
-        actualGenerateTimes
-      };
-
     } catch (error) {
       console.error('[ProcessJob] Error:', error.message);
       
-      // Take a screenshot if page is available
-      if (page && !page.isClosed()) {
-        try {
-          const screenshotPath = `processjob-error-${Date.now()}.png`;
-          await page.screenshot({ path: screenshotPath });
-          console.log(`[ProcessJob] Error screenshot saved to ${screenshotPath}`);
-          this.logger.log(`[ProcessJob] Error screenshot saved to ${screenshotPath}`);
-        } catch (screenshotError) {
-          console.error('[ProcessJob] Failed to take error screenshot:', screenshotError);
-          this.logger.error('[ProcessJob] Failed to take error screenshot:', screenshotError);
-        }
-      }
+      // No need to take screenshot here as it's handled in the inner try/catch if possible
       
       throw new Error(`Failed to upload image and create video: ${error.message}`);
     } finally {
+      // Final cleanup - only if browser wasn't already closed
       if (browser) {
-        await browser.close().catch(() => {});
+        try {
+          await browser.close();
+          console.log('[ProcessJob] Browser closed in finally block');
+        } catch (e) {
+          console.error('[ProcessJob] Error closing browser in finally block:', e);
+          this.logger.error('[ProcessJob] Error closing browser in finally block:', e);
+        }
       }
     }
   }
@@ -1305,58 +1365,6 @@ export class HailuoService {
     }
   }
 
-  /**
-   * Clear browser data for a specific account
-   * @param accountId Account ID to clear browser data for
-   * @returns Object indicating success or failure
-   */
-  async clearBrowserData(accountId: number) {
-    try {
-      const userDataDir = path.join(process.cwd(), `browser-data-${accountId}`);
-      this.logger.log(`Attempting to clear browser data for account ${accountId} at ${userDataDir}`);
-      
-      if (!fs.existsSync(userDataDir)) {
-        this.logger.log(`No browser data directory found at ${userDataDir}`);
-        return {
-          success: true,
-          message: 'No browser data directory found to clear'
-        };
-      }
-      
-      // Kill any Chrome processes that might be using this profile
-      try {
-        const { execSync } = require('child_process');
-        execSync(`pkill -f "browser-data-${accountId}"`).toString();
-        this.logger.log(`Killed Chrome processes related to account ${accountId}`);
-      } catch (processError) {
-        // Ignore errors as there might not be any processes
-        this.logger.log('No Chrome processes needed to be killed');
-      }
-      
-      // Wait a moment to ensure processes are terminated
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Remove the entire profile directory
-      const { execSync } = require('child_process');
-      execSync(`rm -rf "${userDataDir}"`);
-      this.logger.log(`Removed browser data directory at ${userDataDir}`);
-      
-      return {
-        success: true,
-        message: `Successfully cleared browser data for account ${accountId}`
-      };
-    } catch (error) {
-      this.logger.error(`Failed to clear browser data: ${error.message}`);
-      return {
-        success: false,
-        message: `Failed to clear browser data: ${error.message}`
-      };
-    }
-  }
-
-
-  // get
-
   // remove old profile
   async removeOldProfile(accountId: number) {
     // get all folder start with browser-data-${accountId}-
@@ -1376,5 +1384,39 @@ export class HailuoService {
       const folderPath = path.join(userDataDir, folder);
       fs.rmdirSync(folderPath, { recursive: true });
     });
+  }
+
+  async clearBrowserData(accountId: number) {
+    try {
+      const userDataDir = path.join(process.cwd(), `browser-data-${accountId}`);
+      this.logger.log(`Attempting to clear browser data for account ${accountId} at ${userDataDir}`);
+      
+      if (!fs.existsSync(userDataDir)) {
+        this.logger.log(`No browser data directory found at ${userDataDir}`);
+        return {
+          success: true,
+          message: 'No browser data directory found to clear'
+        };
+      }
+      
+      // Note: We no longer kill Chrome processes as that is managed by JobQueueProcessor
+      // JobQueueProcessor's accountRunningStatus prevents multiple jobs from accessing the same account
+      
+      // Remove the entire profile directory
+      const { execSync } = require('child_process');
+      execSync(`rm -rf "${userDataDir}"`);
+      this.logger.log(`Removed browser data directory at ${userDataDir}`);
+      
+      return {
+        success: true,
+        message: `Successfully cleared browser data for account ${accountId}`
+      };
+    } catch (error) {
+      this.logger.error(`Failed to clear browser data: ${error.message}`);
+      return {
+        success: false,
+        message: `Failed to clear browser data: ${error.message}`
+      };
+    }
   }
 }
