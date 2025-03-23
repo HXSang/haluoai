@@ -118,26 +118,15 @@ export class JobQueueService {
     });
   }
 
-  async process(id: number) {
+  async process(id: number, accountId: number) {
     const job = await this.findOne(id);
-    // if job.accountId is null, then we need to find the random account
-    let account: Account;
-    if (job.accountId) {
-      account = await this.accountService.findOneActive(job.accountId);
-    } else {
-      account = await this.accountService.findRandomActiveAccount();
-    }
 
-    if (account) {
-      await this.jobQueueRepository.update(id, {
-        accountId: account.id,
-      });
-      await this.accountService.updateLastOpenAt(account.id);
-    } else {
-      await this.markAsPending(id);
-      return true;
-    }
+    const account = await this.accountService.findOneActive(accountId); 
 
+    await this.jobQueueRepository.update(id, {
+      accountId: accountId,
+    });
+    await this.accountService.updateLastOpenAt(accountId);
     // if account have no cookie, then we need to return failed
     // if (!account.cookie) {
     //   await this.markAsFailed(id);

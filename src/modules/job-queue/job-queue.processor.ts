@@ -85,7 +85,7 @@ export class JobQueueProcessor {
       try {
         await this.jobQueueService.markAsProcessing(job.id);
 
-        await this.jobQueueService.process(job.id);
+        await this.jobQueueService.process(job.id, account.id);
 
         // await this.jobQueueService.markAsCompleted(job.id);
         this.logger.log(`Successfully processed job ${job.id}`);
@@ -116,48 +116,48 @@ export class JobQueueProcessor {
 
   //job run getVideosList
   @Cron(CronExpression.EVERY_MINUTE)
-  async getVideosList() {
-    this.logger.log('getVideosList at ' + new Date().toISOString());
-    if (!this.isActiveJobQueue || this.isGettingVideos) {
-      return;
-    }
-    this.isGettingVideos = true;
+  // async getVideosList() {
+  //   this.logger.log('getVideosList at ' + new Date().toISOString());
+  //   if (!this.isActiveJobQueue || this.isGettingVideos) {
+  //     return;
+  //   }
+  //   this.isGettingVideos = true;
 
-    try {
-      const accounts = await this.accountService.findActiveAccounts();
+  //   try {
+  //     const accounts = await this.accountService.findActiveAccounts();
 
-      console.log('Handle getVideosList total accounts: ', accounts.length);
+  //     console.log('Handle getVideosList total accounts: ', accounts.length);
 
-      const jobQueues = await this.jobQueueRepository.findMany({
-        orderBy: {
-          createdAt: 'desc',
-        },
-        where: {
-          status: QueueStatus.COMPLETED,
-        },
-        take: 5,
-      });
+  //     const jobQueues = await this.jobQueueRepository.findMany({
+  //       orderBy: {
+  //         createdAt: 'desc',
+  //       },
+  //       where: {
+  //         status: QueueStatus.COMPLETED,
+  //       },
+  //       take: 5,
+  //     });
 
-      for (const accountRaw of accounts) {
-        const account = await this.getOrCheckAccount(accountRaw.id);
-        if (!account) {
-          continue;
-        }
-        try {
-          await this.accountService.updateLastOpenAt(account.id);
-          await this.accountService.syncAccountVideos(account.id, jobQueues);
-        } catch (error) {
-          this.logger.error(`Error in getVideosList: ${error.message}`);
-        } finally {
-          this.releaseAccountLock(account.id);
-        }
-      }
-    } catch (error) {
-      this.logger.error(`Error in getVideosList: ${error.message}`);
-    } finally {
-      this.isGettingVideos = false;
-    }
-  }
+  //     for (const accountRaw of accounts) {
+  //       const account = await this.getOrCheckAccount(accountRaw.id);
+  //       if (!account) {
+  //         continue;
+  //       }
+  //       try {
+  //         await this.accountService.updateLastOpenAt(account.id);
+  //         await this.accountService.syncAccountVideos(account.id, jobQueues);
+  //       } catch (error) {
+  //         this.logger.error(`Error in getVideosList: ${error.message}`);
+  //       } finally {
+  //         this.releaseAccountLock(account.id);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     this.logger.error(`Error in getVideosList: ${error.message}`);
+  //   } finally {
+  //     this.isGettingVideos = false;
+  //   }
+  // }
 
   // refresh browser profile
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
