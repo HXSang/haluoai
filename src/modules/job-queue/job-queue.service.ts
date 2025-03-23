@@ -124,8 +124,16 @@ export class JobQueueService {
     let account: Account;
     if (accountId) {
       account = await this.accountService.findOneActive(accountId); 
+      if (!job.accountId && account) {
+        await this.jobQueueRepository.update(id, {
+          accountId: accountId,
+        });
+      }
     } else if (job.accountId) {
       account = await this.accountService.findOneActive(job.accountId);
+      if (!account) {
+        throw new NotFoundException(`Account with ID ${job.accountId} not found`);
+      }
     } else {
       account = await this.accountService.findRandomActiveAccount();
     }
