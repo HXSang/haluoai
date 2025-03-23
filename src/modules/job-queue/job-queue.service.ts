@@ -121,6 +121,15 @@ export class JobQueueService {
   async process(id: number, accountId?: number) {
     const job = await this.findOne(id);
 
+    if (!job) {
+      throw new NotFoundException(`Job with ID ${id} not found`);
+    } 
+
+    if (job.generatedTimes >= job.generateTimes) {
+      await this.markAsCompleted(id);
+      return;
+    }
+
     let account: Account;
     if (accountId) {
       account = await this.accountService.findOneActive(accountId); 
