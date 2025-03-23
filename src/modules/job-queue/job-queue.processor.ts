@@ -6,7 +6,7 @@ import { AccountService } from '@n-modules/account/account.service';
 import { VideoResultService } from '@n-modules/video-result/video-result.service';
 import { AccountRepository } from '@n-modules/account/account.repository';
 import { JobQueueRepository } from './job-queue.repository';
-import { Account } from '@prisma/client';
+import { Account, QueueStatus } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -132,7 +132,7 @@ export class JobQueueProcessor {
         orderBy: {
           createdAt: 'desc',
         },
-        status: 'COMPLETED',
+        status: QueueStatus.COMPLETED,
         take: 5,
       });
 
