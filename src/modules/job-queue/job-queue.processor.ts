@@ -38,7 +38,7 @@ export class JobQueueProcessor {
     }
 
     if (!account) {
-      return null;
+      return false;
     }
 
     // Check if account is running
@@ -76,6 +76,11 @@ export class JobQueueProcessor {
       }
       
       const account = await this.getOrCheckAccount(job.accountId);
+
+      if (account === false) {
+        this.jobQueueService.markAsFailed(job.id, "Account is not available");
+        return;
+      }
 
       if (!account) {
         this.logger.log('No active account found');
