@@ -650,7 +650,7 @@ export class HailuoService {
     let videoResults = [];
     
     try {
-      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, { headless: true }, 'getVideosList');
+      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, undefined, 'getVideosList');
 
       console.log('initializedBrowser getVideosList');
 

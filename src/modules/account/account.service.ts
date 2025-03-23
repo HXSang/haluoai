@@ -89,15 +89,6 @@ export class AccountService {
       // Create video results in database
       const createdVideos = await Promise.all(
         videosResponse.data.map(async (video) => {
-          // find jobqueue promt match video description
-          const jobQueue = availableJobQueue
-            ? availableJobQueue?.find(
-                (job) => job.prompt.trim() === video.description.trim(),
-              )
-            : null;
-          if (jobQueue && jobQueue?.userId) {
-            video.creatorId = jobQueue.userId;
-          }
           // exist video result
           const existVideo = await this.videoResultRepository.findFirst({
             where: {
@@ -107,6 +98,15 @@ export class AccountService {
           if (existVideo) {
             // update video result
             return await this.videoResultService.update(existVideo.id, video);
+          }
+          // find jobqueue promt match video description
+          const jobQueue = availableJobQueue
+            ? availableJobQueue?.find(
+                (job) => job.prompt.trim() === video.description.trim(),
+              )
+            : null;
+          if (jobQueue && jobQueue?.userId) {
+            video.creatorId = jobQueue.userId;
           }
           return await this.videoResultService.create(video);
         }),
