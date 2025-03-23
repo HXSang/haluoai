@@ -133,10 +133,30 @@ export class HailuoService {
           '--disable-blink-features=AutomationControlled',
           '--disable-infobars',
           '--lang=en-US,en',
+          // Add network reliability arguments
+          '--disable-background-networking',
+          '--disable-default-apps',
+          '--disable-extensions',
+          '--disable-sync',
+          '--disable-translate',
+          '--metrics-recording-only',
+          '--no-first-run',
+          '--safebrowsing-disable-auto-update',
+          '--ignore-certificate-errors',
+          '--ignore-ssl-errors',
+          '--ignore-certificate-errors-spki-list',
+          // Increase timeouts for better reliability
+          '--dns-prefetch-disable',
+          '--no-proxy-server',
+          // Optimize for stability rather than performance
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
         ],
         defaultViewport: null,
         devtools: true,
         userDataDir,
+        // Increase timeout for browser launch
+        timeout: 120000,
       });
     } catch (error) {
       this.logger.error(`Browser launch failed: ${error.message}`);
@@ -167,6 +187,24 @@ export class HailuoService {
             '--disable-blink-features=AutomationControlled',
             '--disable-infobars',
             '--lang=en-US,en',
+            // Add network reliability arguments
+            '--disable-background-networking',
+            '--disable-default-apps',
+            '--disable-extensions',
+            '--disable-sync',
+            '--disable-translate',
+            '--metrics-recording-only',
+            '--no-first-run',
+            '--safebrowsing-disable-auto-update',
+            '--ignore-certificate-errors',
+            '--ignore-ssl-errors',
+            '--ignore-certificate-errors-spki-list',
+            // Increase timeouts for better reliability
+            '--dns-prefetch-disable',
+            '--no-proxy-server',
+            // Optimize for stability rather than performance
+            '--disable-accelerated-2d-canvas',
+            '--disable-gpu',
           ],
           defaultViewport: null,
           devtools: true,
@@ -183,8 +221,8 @@ export class HailuoService {
     const page = await browser.newPage();
 
     // Set default timeouts
-    page.setDefaultNavigationTimeout(60000);
-    page.setDefaultTimeout(60000);
+    page.setDefaultNavigationTimeout(90000);
+    page.setDefaultTimeout(90000);
 
     // Check if browserProfile exists, use that instead of just cookies
     if (account.browserProfile) {
@@ -195,11 +233,35 @@ export class HailuoService {
         // Set browser fingerprint
         await page.setUserAgent(browserProfile.browserFingerprint.userAgent);
 
-        // Navigate to create page first to set up the page context
-        await page.goto('https://hailuoai.video/create', {
-          waitUntil: ['domcontentloaded', 'networkidle0'],
-          timeout: 60000,
-        });
+        // Navigate to create page first to set up the page context with retry logic
+        console.log('initializeBrowser: Navigating to create page with retry logic...');
+        let retryCount = 0;
+        const maxRetries = 3;
+        let navigationSuccessful = false;
+
+        while (retryCount < maxRetries && !navigationSuccessful) {
+          try {
+            console.log(`initializeBrowser: Navigation attempt ${retryCount + 1}/${maxRetries}`);
+            await page.goto('https://hailuoai.video/create', {
+              waitUntil: ['domcontentloaded', 'networkidle0'],
+              timeout: 90000,
+            });
+            navigationSuccessful = true;
+            console.log(`initializeBrowser: Navigation succeeded on attempt ${retryCount + 1}`);
+          } catch (error) {
+            retryCount++;
+            console.log(`initializeBrowser: Navigation attempt ${retryCount} failed:`, error.message);
+            
+            if (retryCount === maxRetries) {
+              throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
+            }
+            
+            // Increase timeout for subsequent attempts
+            const waitTime = 5000 * retryCount;
+            console.log(`initializeBrowser: Waiting ${waitTime}ms before retry...`);
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+          }
+        }
 
         // Set cookies
         try {
@@ -355,7 +417,7 @@ export class HailuoService {
           console.log('retryCount: ', retryCount);
           await page.goto('https://hailuoai.video/', {
             waitUntil: ['domcontentloaded', 'networkidle0'],
-            timeout: 60000,
+            timeout: 90000,
           });
           break;
         } catch (error) {
@@ -683,11 +745,41 @@ export class HailuoService {
           });
         });
 
-        // Navigate to create page
-        await page.goto('https://hailuoai.video/create', {
-          waitUntil: ['domcontentloaded', 'networkidle0'],
-          timeout: 60000,
-        });
+        // Navigate to create page with retry logic
+        console.log('Navigating to hailuoai.video/create with retry logic...');
+        let retryCount = 0;
+        const maxRetries = 3;
+        let navigationSuccessful = false;
+
+        while (retryCount < maxRetries && !navigationSuccessful) {
+          try {
+            console.log(`Navigation attempt ${retryCount + 1}/${maxRetries}`);
+            await page.goto('https://hailuoai.video/create', {
+              waitUntil: ['domcontentloaded', 'networkidle0'],
+              timeout: 90000,
+            });
+            navigationSuccessful = true;
+            console.log(`Navigation succeeded on attempt ${retryCount + 1}`);
+          } catch (error) {
+            retryCount++;
+            console.log(`Navigation attempt ${retryCount} failed:`, error.message);
+            
+            if (retryCount === maxRetries) {
+              // On final attempt failure, mark cookie as inactive and throw
+              console.log('Maximum navigation retries reached, marking cookie as inactive');
+              await this.prisma.account.update({
+                where: { id: account.id },
+                data: { isCookieActive: false },
+              });
+              throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
+            }
+            
+            // Increase timeout for subsequent attempts
+            const waitTime = 5000 * retryCount;
+            console.log(`Waiting ${waitTime}ms before retry...`);
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+          }
+        }
 
         // Khôi phục browserProfile sau khi điều hướng nếu có
         if (browserProfile) {
@@ -866,10 +958,34 @@ export class HailuoService {
       try {
         // Navigate to create page
         console.log('[ProcessJob] Navigating to create page...');
-        await page.goto('https://hailuoai.video/create', {
-          waitUntil: ['domcontentloaded', 'networkidle0'],
-          timeout: 60000,
-        });
+        let retryCount = 0;
+        const maxRetries = 3;
+        let navigationSuccessful = false;
+
+        while (retryCount < maxRetries && !navigationSuccessful) {
+          try {
+            console.log(`[ProcessJob] Navigation attempt ${retryCount + 1}/${maxRetries}`);
+            await page.goto('https://hailuoai.video/create', {
+              waitUntil: ['domcontentloaded', 'networkidle0'],
+              timeout: 90000,
+            });
+            navigationSuccessful = true;
+            console.log(`[ProcessJob] Navigation succeeded on attempt ${retryCount + 1}`);
+          } catch (error) {
+            retryCount++;
+            console.log(`[ProcessJob] Navigation attempt ${retryCount} failed:`, error.message);
+            
+            if (retryCount === maxRetries) {
+              console.log('[ProcessJob] Maximum navigation retries reached');
+              throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
+            }
+            
+            // Increase timeout for subsequent attempts
+            const waitTime = 5000 * retryCount;
+            console.log(`[ProcessJob] Waiting ${waitTime}ms before retry...`);
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+          }
+        }
 
         // Khôi phục browserProfile sau khi điều hướng nếu có
         if (browserProfile) {
@@ -1033,7 +1149,7 @@ export class HailuoService {
       // Navigate to main site to ensure cookies are loaded
       await page.goto('https://hailuoai.video/', {
         waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 60000,
+        timeout: 90000,
       });
 
       // Wait a bit to make sure all cookies are set
@@ -1196,6 +1312,24 @@ export class HailuoService {
           '--disable-blink-features=AutomationControlled',
           '--disable-infobars',
           '--lang=en-US,en',
+          // Add network reliability arguments
+          '--disable-background-networking',
+          '--disable-default-apps',
+          '--disable-extensions',
+          '--disable-sync',
+          '--disable-translate',
+          '--metrics-recording-only',
+          '--no-first-run',
+          '--safebrowsing-disable-auto-update',
+          '--ignore-certificate-errors',
+          '--ignore-ssl-errors',
+          '--ignore-certificate-errors-spki-list',
+          // Increase timeouts for better reliability
+          '--dns-prefetch-disable',
+          '--no-proxy-server',
+          // Optimize for stability rather than performance
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
         ],
         defaultViewport: null,
         devtools: true,
@@ -1209,13 +1343,13 @@ export class HailuoService {
       await page.setUserAgent(browserProfile.browserFingerprint.userAgent);
       
       // Set default timeouts
-      page.setDefaultNavigationTimeout(60000);
-      page.setDefaultTimeout(60000);
+      page.setDefaultNavigationTimeout(90000);
+      page.setDefaultTimeout(90000);
       
       // Navigate to create page first to set up the page context
       await page.goto('https://hailuoai.video/create', {
         waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 60000,
+        timeout: 90000,
       });
 
       // Set cookies
