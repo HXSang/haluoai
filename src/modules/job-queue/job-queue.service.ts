@@ -77,7 +77,7 @@ export class JobQueueService {
     return this.jobQueueRepository.findFirst({
       where: {
         status: {
-          in: [QueueStatus.PENDING],
+          in: [QueueStatus.PENDING, QueueStatus.PROCESSING],
         },
         OR: [{ startAt: null }, { startAt: { lt: new Date() } }],
       },
