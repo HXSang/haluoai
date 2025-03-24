@@ -62,7 +62,7 @@ export class AccountService {
       // save browser profile to database
       await this.accountRepository.update(account.id, {
         browserProfile: result.browserProfile,
-        
+
         lastLoginAt: new Date(),
         isCookieActive: true,
       });
@@ -95,20 +95,32 @@ export class AccountService {
             where: {
               videoId: video.videoId,
             },
+            select: {
+              id: true,
+              creatorId: true,
+              jobQueueId: true,
+              videoId: true,
+            },
           });
-          if (existVideo) {
-            // update video result
-            return await this.videoResultService.update(existVideo.id, video);
-          }
           // find jobqueue promt match video description
           const jobQueue = availableJobQueue
             ? availableJobQueue?.find(
                 (job) => job.prompt.trim() === video.description.trim(),
               )
             : null;
-          if (jobQueue && jobQueue?.userId) {
+
+          if (jobQueue && jobQueue?.userId && !existVideo?.creatorId) {
             video.creatorId = jobQueue.userId;
           }
+          if (jobQueue && existVideo?.jobQueueId) {
+            video.jobQueueId = jobQueue.id;
+          }
+
+          if (existVideo) {
+            // update video result
+            return await this.videoResultService.update(existVideo.id, video);
+          }
+
           return await this.videoResultService.create(video);
         }),
       );
