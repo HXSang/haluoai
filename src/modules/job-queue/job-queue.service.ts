@@ -25,6 +25,7 @@ export class JobQueueService {
       userId: user.id,
       modelId: createJobQueueDto.modelId,
       note: createJobQueueDto.note,
+      startAt: createJobQueueDto.startAt,
     });
   }
 
@@ -106,9 +107,26 @@ export class JobQueueService {
   }
 
   async markAsFailed(id: number, message?: string) {
+    const job = await this.jobQueueRepository.findFirst({
+      where: {
+        id,
+      },
+      select: {
+        retryTimes: true,
+      },
+    });
+
+    if (job.retryTimes >= 3) {
+      return this.jobQueueRepository.update(id, {
+        status: QueueStatus.FAILED,
+        message,
+      });
+    }
+
     return this.jobQueueRepository.update(id, {
-      status: QueueStatus.FAILED,
+      status: QueueStatus.PENDING,
       message,
+      retryTimes: job.retryTimes + 1,
     });
   }
 
