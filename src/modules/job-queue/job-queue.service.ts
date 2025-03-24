@@ -150,7 +150,7 @@ export class JobQueueService {
     await this.jobQueueRepository.update(id, {
       accountId: accountId,
     });
-    await this.accountService.updateLastOpenAt(accountId);
+    await this.accountService.updateLastOpenAt(account.id);
     // if account have no cookie, then we need to return failed
     // if (!account.cookie) {
     //   await this.markAsFailed(id);

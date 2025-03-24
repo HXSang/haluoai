@@ -62,6 +62,7 @@ export class AccountService {
       // save browser profile to database
       await this.accountRepository.update(account.id, {
         browserProfile: result.browserProfile,
+        
         lastLoginAt: new Date(),
         isCookieActive: true,
       });

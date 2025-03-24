@@ -155,10 +155,10 @@ export class HailuoService {
         defaultViewport: null,
         devtools: true,
         userDataDir,
-        // Increase timeout for browser launch
-        timeout: 120000,
-        // Add protocol timeout to fix 'Runtime.callFunctionOn timed out' issue
-        protocolTimeout: 180000,
+        // Reduce timeout for browser launch from 120000 to 45000
+        timeout: 45000,
+        // Reduce protocol timeout from 180000 to 45000
+        protocolTimeout: 45000,
       });
     } catch (error) {
       this.logger.error(`Browser launch failed: ${error.message}`);
@@ -225,8 +225,8 @@ export class HailuoService {
     const page = await browser.newPage();
 
     // Set default timeouts
-    page.setDefaultNavigationTimeout(90000);
-    page.setDefaultTimeout(90000);
+    page.setDefaultNavigationTimeout(45000);
+    page.setDefaultTimeout(45000);
 
     // Check if browserProfile exists, use that instead of just cookies
     if (account.browserProfile) {
@@ -248,7 +248,7 @@ export class HailuoService {
             console.log(`initializeBrowser: Navigation attempt ${retryCount + 1}/${maxRetries}`);
             await page.goto('https://hailuoai.video/create', {
               waitUntil: ['domcontentloaded', 'networkidle0'],
-              timeout: 90000,
+              timeout: 45000,
             });
             navigationSuccessful = true;
             console.log(`initializeBrowser: Navigation succeeded on attempt ${retryCount + 1}`);
@@ -260,8 +260,8 @@ export class HailuoService {
               throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
             }
             
-            // Increase timeout for subsequent attempts
-            const waitTime = 5000 * retryCount;
+            // Reduce wait time between retries from 5000 * retryCount to 3000 * retryCount
+            const waitTime = 3000 * retryCount;
             console.log(`initializeBrowser: Waiting ${waitTime}ms before retry...`);
             await new Promise((resolve) => setTimeout(resolve, waitTime));
           }
@@ -421,7 +421,7 @@ export class HailuoService {
           console.log('retryCount: ', retryCount);
           await page.goto('https://hailuoai.video/', {
             waitUntil: ['domcontentloaded', 'networkidle0'],
-            timeout: 90000,
+            timeout: 45000,
           });
           break;
         } catch (error) {
@@ -431,7 +431,7 @@ export class HailuoService {
           if (retryCount === maxRetries) {
             throw new Error(`Failed to load page after ${maxRetries} attempts`);
           }
-          await new Promise((resolve) => setTimeout(resolve, 5000));
+          await new Promise((resolve) => setTimeout(resolve, 3000));
         }
       }
 
@@ -442,7 +442,7 @@ export class HailuoService {
 
       // Kiểm tra xem đã đăng nhập hay chưa
       console.log('Checking if already logged in...');
-      await new Promise(resolve => setTimeout(resolve, 3000)); // Wait a bit for page to settle
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait a bit for page to settle
       
       const isAlreadyLoggedIn = await page.evaluate(() => {
         const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
@@ -457,7 +457,7 @@ export class HailuoService {
         
         // Refresh the page to ensure we have the latest state
         await page.reload({ waitUntil: 'networkidle0' });
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         
         // Get a complete browser profile
         const browserProfileResult = await this.getBrowserCookie(account);
@@ -476,11 +476,11 @@ export class HailuoService {
 
       // Wait for content to be truly ready
       try {
-        await page.waitForSelector('#video-user-component', { timeout: 10000 });
+        await page.waitForSelector('#video-user-component', { timeout: 4000 });
       } catch (e) {
         console.log('Initial selector not found, refreshing page...');
         await page.reload({ waitUntil: ['domcontentloaded', 'networkidle0'] });
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
       }
 
       // Tiếp tục quy trình đăng nhập bình thường nếu chưa đăng nhập
@@ -565,22 +565,22 @@ export class HailuoService {
       popup = (await popupPromise) as puppeteer.Page;
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
 
         // Handle email input
         const emailInput = await popup.waitForSelector('input[type="email"]', {
           visible: true,
-          timeout: 10000,
+          timeout: 4000,
         });
         await emailInput.click({ clickCount: 3 });
         await emailInput.type(account.email, { delay: 100 });
         await emailInput.press('Enter');
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         // Handle password input
         const passwordInput = await popup.waitForSelector(
           'input[type="password"]',
-          { visible: true, timeout: 10000 },
+          { visible: true, timeout: 4000 },
         );
         await passwordInput.click({ clickCount: 3 });
         await passwordInput.type(account.password, { delay: 100 });
@@ -610,11 +610,11 @@ export class HailuoService {
       }
 
       // Additional wait to ensure all states are updated
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Refresh the page to ensure we have the latest state
       await page.reload({ waitUntil: 'networkidle0' });
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Now collect full browser profile
       console.log('Collecting browser profile...');
@@ -760,7 +760,7 @@ export class HailuoService {
             console.log(`Navigation attempt ${retryCount + 1}/${maxRetries}`);
             await page.goto('https://hailuoai.video/create', {
               waitUntil: ['domcontentloaded', 'networkidle0'],
-              timeout: 90000,
+              timeout: 45000,
             });
             navigationSuccessful = true;
             console.log(`Navigation succeeded on attempt ${retryCount + 1}`);
@@ -773,8 +773,8 @@ export class HailuoService {
               throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
             }
             
-            // Increase timeout for subsequent attempts
-            const waitTime = 5000 * retryCount;
+            // Reduce wait time between retries from 5000 * retryCount to 3000 * retryCount
+            const waitTime = 3000 * retryCount;
             console.log(`Waiting ${waitTime}ms before retry...`);
             await new Promise((resolve) => setTimeout(resolve, waitTime));
           }
@@ -785,7 +785,7 @@ export class HailuoService {
           await this.restoreBrowserProfile(page, browserProfile);
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
 
         // Check if user is logged in by looking for avatar
         console.log('Checking login status...');
@@ -821,12 +821,12 @@ export class HailuoService {
 
         console.log('User is logged in, proceeding with video list fetch');
 
-        // Wait for API response
+        // Wait for API response with reduced timeout from 30000 to 20000
         const apiResponse: any = await Promise.race([
           apiResponsePromise,
           new Promise((_, reject) => setTimeout(() => {
             reject(new Error('API timeout'));
-          }, 30000))
+          }, 20000))
         ]);
 
         if (apiResponse && apiResponse.data && apiResponse.data.batchVideos) {
@@ -956,7 +956,7 @@ export class HailuoService {
             console.log(`[ProcessJob] Navigation attempt ${retryCount + 1}/${maxRetries}`);
             await page.goto('https://hailuoai.video/create', {
               waitUntil: ['domcontentloaded', 'networkidle0'],
-              timeout: 90000,
+              timeout: 45000,
             });
             navigationSuccessful = true;
             console.log(`[ProcessJob] Navigation succeeded on attempt ${retryCount + 1}`);
@@ -969,8 +969,8 @@ export class HailuoService {
               throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
             }
             
-            // Increase timeout for subsequent attempts
-            const waitTime = 5000 * retryCount;
+            // Reduce wait time between retries from 5000 * retryCount to 3000 * retryCount
+            const waitTime = 3000 * retryCount;
             console.log(`[ProcessJob] Waiting ${waitTime}ms before retry...`);
             await new Promise((resolve) => setTimeout(resolve, waitTime));
           }
@@ -1002,14 +1002,14 @@ export class HailuoService {
         console.log('[ProcessJob] File uploaded');
 
         // Wait for upload to complete
-        console.log('[ProcessJob] Waiting 15s for upload to process...');
+        console.log('[ProcessJob] Waiting 8s for upload to process...');
         await new Promise(resolve => setTimeout(resolve, 8000));
         console.log('[ProcessJob] Upload processing completed');
 
         // Check if upload was successful by looking for the uploaded image element
         console.log('[ProcessJob] Validating upload success...');
         try {
-          await page.waitForSelector('img[alt="uploaded image"]', { timeout: 5000 });
+          await page.waitForSelector('img[alt="uploaded image"]', { timeout: 4000 });
           console.log('[ProcessJob] Upload validation successful');
         } catch (error) {
           console.error('[ProcessJob] Upload validation failed');
@@ -1041,7 +1041,7 @@ export class HailuoService {
         await generateInput.type(generateTimes.toString());
         
         // Wait a bit for the system to adjust the value
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Get the actual value after system adjustment
         const actualGenerateTimes = await page.evaluate(() => {
@@ -1059,7 +1059,7 @@ export class HailuoService {
 
         // Wait for some indication of success
         console.log('[ProcessJob] Waiting for generation to start...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
         console.log('[ProcessJob] Generation started');
 
         // Close browser properly before returning
@@ -1131,18 +1131,57 @@ export class HailuoService {
       this.logger.log(`Getting browser cookies for account ${account.email}`);
       
       // Initialize browser with the account's profile
-      const { browser: initializedBrowser, page: initializedPage } = await this.initializeBrowser(account);
-      browser = initializedBrowser;
-      page = initializedPage;
-
-      // Navigate to main site to ensure cookies are loaded
-      await page.goto('https://hailuoai.video/', {
+      const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
+      
+      // Launch browser with userDataDir to maintain profile
+      browser = await puppeteer.launch({
+        headless: process.env.APP_URL?.includes('localhost') ? false : true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--window-size=1280,800',
+          '--start-maximized',
+          '--disable-web-security',
+          '--disable-features=IsolateOrigins,site-per-process',
+          '--disable-blink-features=AutomationControlled',
+          '--disable-infobars',
+          '--lang=en-US,en',
+          '--disable-background-networking',
+          '--disable-default-apps',
+          '--disable-extensions',
+          '--disable-sync',
+          '--disable-translate',
+          '--metrics-recording-only',
+          '--no-first-run',
+          '--safebrowsing-disable-auto-update',
+          '--ignore-certificate-errors',
+          '--ignore-ssl-errors',
+          '--ignore-certificate-errors-spki-list',
+          '--dns-prefetch-disable',
+          '--no-proxy-server',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+        ],
+        defaultViewport: null,
+        devtools: true,
+        userDataDir,
+      });
+      
+      // Open a new page
+      page = await browser.newPage();
+      
+      // Set default timeouts
+      page.setDefaultNavigationTimeout(45000);
+      page.setDefaultTimeout(45000);
+      
+      // Navigate to create page to ensure profile is loaded
+      await page.goto('https://hailuoai.video/create', {
         waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 90000,
+        timeout: 45000,
       });
 
-      // Wait a bit to make sure all cookies are set
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Wait for page to settle
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Get all cookies
       const cookies = await page.cookies();
@@ -1177,45 +1216,6 @@ export class HailuoService {
       });
       this.logger.log(`Retrieved sessionStorage with ${Object.keys(sessionStorage).length} items`);
 
-      // Get IndexedDB data
-      const indexedDBData = await page.evaluate(async () => {
-        const databases = await window.indexedDB.databases();
-        const data = {};
-        
-        for (const db of databases) {
-          if (db.name) {
-            data[db.name] = {
-              version: db.version
-            };
-          }
-        }
-        return data;
-      });
-      this.logger.log(`Retrieved IndexedDB data for ${Object.keys(indexedDBData).length} databases`);
-
-      // Get Service Workers info
-      const serviceWorkers = await page.evaluate(async () => {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        return registrations.map(reg => ({
-          scope: reg.scope,
-          active: reg.active ? true : false
-        }));
-      });
-      this.logger.log(`Retrieved ${serviceWorkers.length} service workers`);
-
-      // Get Cache Storage data
-      const cacheStorage = await page.evaluate(async () => {
-        const cacheNames = await caches.keys();
-        const cacheContents = {};
-        for (const name of cacheNames) {
-          const cache = await caches.open(name);
-          const keys = await cache.keys();
-          cacheContents[name] = keys.map(key => key.url);
-        }
-        return cacheContents;
-      });
-      this.logger.log(`Retrieved cache storage for ${Object.keys(cacheStorage).length} caches`);
-
       // Get browser fingerprint
       const browserFingerprint = await page.evaluate(() => ({
         userAgent: navigator.userAgent,
@@ -1232,11 +1232,11 @@ export class HailuoService {
         localStorage,
         sessionStorage,
         indexedDB: {
-          databases: Object.keys(indexedDBData),
-          data: indexedDBData
+          databases: [],
+          data: {}
         },
-        serviceWorkers,
-        cacheStorage,
+        serviceWorkers: [],
+        cacheStorage: {},
         webRTC: browserFingerprint.webRTC,
         browserFingerprint: {
           userAgent: browserFingerprint.userAgent,
@@ -1250,7 +1250,7 @@ export class HailuoService {
       return {
         success: true,
         browserProfile: JSON.stringify(browserProfile),
-        message: 'Successfully retrieved complete browser profile'
+        message: 'Successfully retrieved browser profile'
       };
     } catch (error) {
       this.logger.error(`Error getting browser profile for ${account.email}:`, error);
@@ -1266,7 +1266,7 @@ export class HailuoService {
         });
       }
     }
-  } 
+  }
   
   /**
    * Test login functionality using only cookies without browser cache
@@ -1332,13 +1332,13 @@ export class HailuoService {
       await page.setUserAgent(browserProfile.browserFingerprint.userAgent);
       
       // Set default timeouts
-      page.setDefaultNavigationTimeout(90000);
-      page.setDefaultTimeout(90000);
+      page.setDefaultNavigationTimeout(45000);
+      page.setDefaultTimeout(45000);
       
       // Navigate to create page first to set up the page context
       await page.goto('https://hailuoai.video/create', {
         waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 90000,
+        timeout: 45000,
       });
 
       // Set cookies
@@ -1427,7 +1427,7 @@ export class HailuoService {
       this.logger.log(`Initial state screenshot saved to ${initialScreenshotPath}`);
       
       // Wait for content to load
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       // Check if user is logged in by looking for avatar
       const isLoggedIn = await page.evaluate(() => {
