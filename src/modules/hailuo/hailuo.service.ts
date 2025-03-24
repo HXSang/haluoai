@@ -1041,7 +1041,7 @@ export class HailuoService {
         await generateInput.type(generateTimes.toString());
         
         // Wait a bit for the system to adjust the value
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
         
         // Get the actual value after system adjustment
         const actualGenerateTimes = await page.evaluate(() => {
