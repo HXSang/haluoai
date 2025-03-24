@@ -157,6 +157,8 @@ export class HailuoService {
         userDataDir,
         // Increase timeout for browser launch
         timeout: 120000,
+        // Add protocol timeout to fix 'Runtime.callFunctionOn timed out' issue
+        protocolTimeout: 180000,
       });
     } catch (error) {
       this.logger.error(`Browser launch failed: ${error.message}`);
@@ -209,6 +211,8 @@ export class HailuoService {
           defaultViewport: null,
           devtools: true,
           userDataDir,
+          // Add protocol timeout to fix 'Runtime.callFunctionOn timed out' issue
+          protocolTimeout: 180000,
         });
         console.log('Browser launched successfully after cleanup');
         this.logger.log('Browser launched successfully after cleanup');
@@ -766,11 +770,6 @@ export class HailuoService {
             
             if (retryCount === maxRetries) {
               // On final attempt failure, mark cookie as inactive and throw
-              console.log('Maximum navigation retries reached, marking cookie as inactive');
-              await this.prisma.account.update({
-                where: { id: account.id },
-                data: { isCookieActive: false },
-              });
               throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
             }
             
@@ -817,12 +816,6 @@ export class HailuoService {
             browser = null; // Set to null so we don't try to close it again in finally block
           }
           
-          // Update account cookie status
-          await this.prisma.account.update({
-            where: { id: account.id },
-            data: { isCookieActive: false },
-          });
-          
           throw new Error('User is not logged in - please login first');
         }
 
@@ -832,10 +825,6 @@ export class HailuoService {
         const apiResponse: any = await Promise.race([
           apiResponsePromise,
           new Promise((_, reject) => setTimeout(() => {
-            this.prisma.account.update({
-              where: { id: account.id },
-              data: { isCookieActive: false },
-            });
             reject(new Error('API timeout'));
           }, 30000))
         ]);
