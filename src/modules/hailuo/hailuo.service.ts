@@ -785,7 +785,7 @@ export class HailuoService {
           await this.restoreBrowserProfile(page, browserProfile);
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 6000));
 
         // Check if user is logged in by looking for avatar
         console.log('Checking login status...');
@@ -1427,7 +1427,7 @@ export class HailuoService {
       this.logger.log(`Initial state screenshot saved to ${initialScreenshotPath}`);
       
       // Wait for content to load
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 6000));
       
       // Check if user is logged in by looking for avatar
       const isLoggedIn = await page.evaluate(() => {
