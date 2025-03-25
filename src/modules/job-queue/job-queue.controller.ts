@@ -29,6 +29,12 @@ export class JobQueueController {
     return this.jobQueueService.findPendingJob();
   }
 
+  // get pending job
+  @Get('/account-pending')
+  getPendingJobByAccount() {
+    return this.jobQueueService.findPendingJobsGroupedByAccount();
+  }
+
   @Post('/:id/process')
   process(@Param('id') id: string) {
     return this.jobQueueService.process(+id);
