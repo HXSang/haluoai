@@ -116,7 +116,7 @@ export class JobQueueService {
       },
     });
 
-    if (job.retryTimes >= 3) {
+    if (job.retryTimes &&job.retryTimes >= 3) {
       return this.jobQueueRepository.update(id, {
         status: QueueStatus.FAILED,
         message,
@@ -126,7 +126,7 @@ export class JobQueueService {
     return this.jobQueueRepository.update(id, {
       status: QueueStatus.PENDING,
       message,
-      retryTimes: job.retryTimes + 1,
+      retryTimes: (job.retryTimes || 0) + 1,
     });
   }
 
