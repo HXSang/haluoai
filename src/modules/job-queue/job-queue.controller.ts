@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { JobQueueService } from './job-queue.service';
 import { CreateJobQueueDto } from './dto/create-job-queue.dto';
 import { UpdateJobQueueDto } from './dto/update-job-queue.dto';
@@ -28,12 +37,17 @@ export class JobQueueController {
   getPendingJob() {
     return this.jobQueueService.findPendingJob();
   }
-
   // get pending job
   @Get('/account-pending')
   getPendingJobByAccount() {
     return this.jobQueueService.findPendingJobsGroupedByAccount();
   }
+
+  @Post('/:id/request-pending')
+  requestPendingJob(@Param('id') id: string) {
+    return this.jobQueueService.markAsProcessing(+id);
+  }
+
 
   @Post('/:id/process')
   process(@Param('id') id: string) {
@@ -46,7 +60,10 @@ export class JobQueueController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateJobQueueDto: UpdateJobQueueDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateJobQueueDto: UpdateJobQueueDto,
+  ) {
     return this.jobQueueService.update(+id, updateJobQueueDto);
   }
 

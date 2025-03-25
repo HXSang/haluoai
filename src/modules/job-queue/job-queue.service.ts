@@ -92,7 +92,7 @@ export class JobQueueService {
     const queue = await this.findOne(id);
     if (!queue.startAt) {
       await this.jobQueueRepository.update(id, {
-        startAt: new Date().toISOString(),
+        startAt: new Date(),
       });
     }
     return this.jobQueueRepository.update(id, {
