@@ -22,6 +22,7 @@
     "fix-permissions": "sudo chown -R node:node /home/node/app"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.774.0",
     "@css-inline/css-inline": "^0.14.3",
     "@langchain/core": "^0.3.22",
     "@nestjs-cls/transactional": "^2.4.4",

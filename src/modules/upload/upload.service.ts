@@ -1,24 +1,25 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { promises as fs } from 'fs';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UploadService {
-  private readonly uploadDir: string;
+  private readonly s3Client: S3Client;
+  private readonly bucket: string;
+  private readonly cdnUrl: string;
 
   constructor() {
-    this.uploadDir = path.join(process.cwd(), 'uploads');
-    // Create uploads directory if it doesn't exist
-    this.ensureUploadDirectory();
-  }
-
-  private async ensureUploadDirectory() {
-    try {
-      await fs.access(this.uploadDir);
-    } catch {
-      await fs.mkdir(this.uploadDir, { recursive: true });
-    }
+    this.bucket = process.env.AWS_BUCKET;
+    this.cdnUrl = process.env.AWS_URL;
+    
+    this.s3Client = new S3Client({
+      region: process.env.AWS_DEFAULT_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
   }
 
   async uploadFile(file: Express.Multer.File) {
@@ -28,26 +29,34 @@ export class UploadService {
 
     const fileExtension = path.extname(file.originalname);
     const fileName = `${uuidv4()}${fileExtension}`;
-    const filePath = path.join(this.uploadDir, fileName);
 
-    await fs.writeFile(filePath, file.buffer);
+    await this.s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: fileName,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      })
+    );
 
     return {
       fileName,
       originalName: file.originalname,
-      path: `/uploads/${fileName}`,
+      path: `/${fileName}`,
       size: file.size,
       mimeType: file.mimetype,
-      url: `${process.env.APP_URL}/uploads/${fileName}`,
+      url: `${this.cdnUrl}/${fileName}`,
     };
   }
 
   async deleteFile(fileName: string) {
-    const filePath = path.join(this.uploadDir, fileName);
-
     try {
-      await fs.access(filePath);
-      await fs.unlink(filePath);
+      await this.s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: this.bucket,
+          Key: fileName,
+        })
+      );
       return { message: 'File deleted successfully' };
     } catch (error) {
       throw new NotFoundException('File not found');
