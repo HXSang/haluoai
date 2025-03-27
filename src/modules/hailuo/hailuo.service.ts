@@ -1024,7 +1024,7 @@ export class HailuoService {
         // Check if upload was successful by looking for the uploaded image element
         console.log('[ProcessJob] Validating upload success...');
         try {
-          await page.waitForSelector('img[alt="uploaded image"]', { timeout: 20000 });
+          await page.waitForSelector('img[alt="uploaded image"], img[alt="AI Video Uploaded Image by Hailuo AI Video Generator"]', { timeout: 20000 });
           console.log('[ProcessJob] Upload validation successful');
         } catch (error) {
           console.error('[ProcessJob] Upload validation failed');
