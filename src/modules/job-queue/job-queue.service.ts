@@ -116,7 +116,7 @@ export class JobQueueService {
       },
     });
 
-    if (job.retryTimes &&job.retryTimes >= 3) {
+    if (job.retryTimes && job.retryTimes >= 3) {
       return this.jobQueueRepository.update(id, {
         status: QueueStatus.FAILED,
         message,
@@ -141,7 +141,7 @@ export class JobQueueService {
 
     if (!job) {
       throw new NotFoundException(`Job with ID ${id} not found`);
-    } 
+    }
 
     if (job.generatedTimes >= job.generateTimes) {
       await this.markAsCompleted(id);
@@ -150,7 +150,7 @@ export class JobQueueService {
 
     let account: Account;
     if (accountId) {
-      account = await this.accountService.findOneActive(accountId); 
+      account = await this.accountService.findOneActive(accountId);
       if (!job.accountId && account) {
         await this.jobQueueRepository.update(id, {
           accountId: accountId,
@@ -159,7 +159,9 @@ export class JobQueueService {
     } else if (job.accountId) {
       account = await this.accountService.findOneActive(job.accountId);
       if (!account) {
-        throw new NotFoundException(`Account with ID ${job.accountId} not found`);
+        throw new NotFoundException(
+          `Account with ID ${job.accountId} not found`,
+        );
       }
     } else {
       account = await this.accountService.findRandomActiveAccount();
@@ -193,6 +195,10 @@ export class JobQueueService {
         ? QueueStatus.COMPLETED
         : QueueStatus.PENDING;
 
+    if (result.success === false) {
+      message = result.message;
+    }
+
     if (result.actualGenerateTimes === 0 && newStatus === QueueStatus.PENDING) {
       message = 'Account has reached max queue number, continue waiting...';
     }
@@ -209,7 +215,9 @@ export class JobQueueService {
     return result;
   }
 
-  async findPendingJobsGroupedByAccount(): Promise<{ [key: string]: JobQueue[] }> {
+  async findPendingJobsGroupedByAccount(): Promise<{
+    [key: string]: JobQueue[];
+  }> {
     const pendingJobs = await this.jobQueueRepository.findMany({
       where: {
         status: {
@@ -223,14 +231,17 @@ export class JobQueueService {
     });
 
     // Group jobs by accountId
-    const groupedJobs = pendingJobs.reduce<{ [key: string]: JobQueue[] }>((acc, job) => {
-      const accountId = job.accountId?.toString() || 'unassigned';
-      if (!acc[accountId]) {
-        acc[accountId] = [];
-      }
-      acc[accountId].push(job);
-      return acc;
-    }, {});
+    const groupedJobs = pendingJobs.reduce<{ [key: string]: JobQueue[] }>(
+      (acc, job) => {
+        const accountId = job.accountId?.toString() || 'unassigned';
+        if (!acc[accountId]) {
+          acc[accountId] = [];
+        }
+        acc[accountId].push(job);
+        return acc;
+      },
+      {},
+    );
 
     return groupedJobs;
   }

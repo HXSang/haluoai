@@ -951,7 +951,11 @@ export class HailuoService {
           browser = null;
         }
         
-        throw new Error('Maximum concurrent video generation limit (5) reached. Please try again later.');
+        return {
+          success: false,
+          message: 'Maximum concurrent video generation limit (5) reached. Please try again later.',
+          actualGenerateTimes: 0,
+        };
       }
 
       // Wrap all browser operations in a try/catch to ensure proper cleanup
