@@ -445,7 +445,7 @@ export class HailuoService {
       await new Promise(resolve => setTimeout(resolve, 2000)); // Wait a bit for page to settle
       
       const isAlreadyLoggedIn = await page.evaluate(() => {
-        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
+        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"], img[alt="AI Video avatar by Hailuo AI Video Generator"]');
         return !!avatarImg;
       });
       
@@ -520,7 +520,7 @@ export class HailuoService {
           try {
             console.log(`Checking login status... Attempt ${checkCount + 1}/${maxChecks}`);
             const isLoggedIn = await page.evaluate(() => {
-              const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
+              const avatarImg = document.querySelector('img[alt="hailuo video avatar png"], img[alt="AI Video avatar by Hailuo AI Video Generator"]');
               return !!avatarImg;
             });
 
@@ -710,203 +710,204 @@ export class HailuoService {
     }
   }
 
-  async getVideosList(account: Account) {
+  async getVideosList(account: Account, existingBrowser = null, existingPage = null) {
     let browser;
     let page;
     let videoResults = [];
+    let shouldCloseBrowser = false;
     
     try {
-      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, undefined, 'getVideosList');
-
-      console.log('initializedBrowser getVideosList');
-
-      browser = initializedBrowser;
-      page = initializedPage;
-
-      // Wrap all browser operations in a try/catch to ensure proper cleanup
-      try {
-        // Enable request interception
-        await page.setRequestInterception(true);
-
-        // Listen for network requests
-        page.on('request', request => {
-          request.continue();
-        });
-
-        // Create a promise to store API response
-        const apiResponsePromise = new Promise((resolve) => {
-          page.on('response', async response => {
-            const url = response.url();
-            if (url.includes('/v3/api/multimodal/video/my/batchCursor')) {
-              try {
-                const responseData = await response.json();
-                resolve(responseData);
-              } catch (error) {
-                console.error('Error parsing response:', error);
-                resolve(null);
-              }
-            }
-          });
-        });
-
-        // Navigate to create page with retry logic
-        console.log('Navigating to hailuoai.video/create with retry logic...');
-        let retryCount = 0;
-        const maxRetries = 3;
-        let navigationSuccessful = false;
-
-        while (retryCount < maxRetries && !navigationSuccessful) {
-          try {
-            console.log(`Navigation attempt ${retryCount + 1}/${maxRetries}`);
-            await page.goto('https://hailuoai.video/create', {
-              waitUntil: ['domcontentloaded', 'networkidle0'],
-              timeout: 45000,
-            });
-            navigationSuccessful = true;
-            console.log(`Navigation succeeded on attempt ${retryCount + 1}`);
-          } catch (error) {
-            retryCount++;
-            console.log(`Navigation attempt ${retryCount} failed:`, error.message);
-            
-            if (retryCount === maxRetries) {
-              // On final attempt failure, mark cookie as inactive and throw
-              throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
-            }
-            
-            // Reduce wait time between retries from 5000 * retryCount to 3000 * retryCount
-            const waitTime = 3000 * retryCount;
-            console.log(`Waiting ${waitTime}ms before retry...`);
-            await new Promise((resolve) => setTimeout(resolve, waitTime));
-          }
-        }
-
-        // Khôi phục browserProfile sau khi điều hướng nếu có
-        if (browserProfile) {
-          await this.restoreBrowserProfile(page, browserProfile);
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 6000));
-
-        // Check if user is logged in by looking for avatar
-        console.log('Checking login status...');
-        const isLoggedIn = await page.evaluate(() => {
-          const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
-          return !!avatarImg;
-        });
-
-        if (!isLoggedIn) {
-          console.log('User is not logged in');
-          
-          // Take a screenshot when login error is detected
-          try {
-            const screenshotPath = `login-error-${Date.now()}.png`;
-            await page.screenshot({ path: screenshotPath });
-            console.log(`Login error screenshot saved to ${screenshotPath}`);
-            this.logger.log(`Login error screenshot saved to ${screenshotPath}`);
-          } catch (screenshotError) {
-            console.error('Failed to take login error screenshot:', screenshotError);
-            this.logger.error('Failed to take login error screenshot:', screenshotError);
-          }
-          
-          // Close browser properly before updating account status
-          if (browser) {
-            await browser.close().catch(e => {
-              console.error('Error closing browser after login error:', e);
-            });
-            browser = null; // Set to null so we don't try to close it again in finally block
-          }
-          
-          throw new Error('User is not logged in - please login first');
-        }
-
-        console.log('User is logged in, proceeding with video list fetch');
-
-        // Wait for API response with reduced timeout from 30000 to 20000
-        const apiResponse: any = await Promise.race([
-          apiResponsePromise,
-          new Promise((_, reject) => setTimeout(() => {
-            reject(new Error('API timeout'));
-          }, 20000))
-        ]);
-
-        if (apiResponse && apiResponse.data && apiResponse.data.batchVideos) {
-          for (const batch of apiResponse.data.batchVideos) {
-            for (const asset of batch.assets) {
-              const videoResult = {
-                batchId: batch.batchID,
-                batchType: batch.batchType,
-                videoId: asset.id,
-                description: asset.desc,
-                coverUrl: asset.coverURL,
-                videoUrl: asset.videoURL,
-                downloadUrl: asset.downloadURL,
-                status: asset.status,
-                width: asset.width,
-                height: asset.height,
-                hasVoice: asset.hasVoice,
-                message: asset?.message,
-                modelId: asset.modelID,
-                userId: asset.userID.toString(),
-                createType: asset.createType,
-                promptImgUrl: asset.promptImgURL,
-                extra: asset.extra,
-                accountId: account.id,
-                createTime: String(asset.createTime || new Date().getTime()),
-              };
-              videoResults.push(videoResult);
-            }
-          }
-        }
-
-        // Close browser properly before returning
-        if (browser) {
-          await browser.close().catch(e => {
-            console.error('Error closing browser after successful fetch:', e);
-          });
-          browser = null; // Set to null so we don't try to close it again in finally block
-        }
-
-        return {
-          success: true,
-          data: videoResults,
-          message: 'Videos list captured successfully'
-        };
-      } catch (innerError) {
-        // Handle errors during browser operations
-        console.error('Inner operation error:', innerError.message);
-        
-        // Take a screenshot if possible
-        if (page && !page.isClosed()) {
-          try {
-            const screenshotPath = `getvideos-inner-error-${Date.now()}.png`;
-            await page.screenshot({ path: screenshotPath });
-            console.log(`Error screenshot saved to ${screenshotPath}`);
-            this.logger.log(`Error screenshot saved to ${screenshotPath}`);
-          } catch (screenshotError) {
-            console.error('Failed to take error screenshot:', screenshotError);
-          }
-        }
-        
-        // Close browser gracefully
-        if (browser) {
-          await browser.close().catch(e => {
-            console.error('Error closing browser after inner error:', e);
-          });
-          browser = null; // Set to null so we don't try to close it again in finally block
-        }
-        
-        // Re-throw the error
-        throw innerError;
+      // Use existing browser and page if provided, otherwise initialize a new one
+      // This allows sharing browser instances between methods (like processJob) for better performance
+      if (existingBrowser && existingPage) {
+        console.log('getVideosList: Using existing browser instance');
+        browser = existingBrowser;
+        page = existingPage;
+      } else {
+        console.log('getVideosList: Initializing new browser instance');
+        const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, undefined, 'getVideosList');
+        console.log('initializedBrowser getVideosList');
+        browser = initializedBrowser;
+        page = initializedPage;
+        shouldCloseBrowser = true; // Only close browser if we created it
       }
+
+      // Enable request interception
+      await page.setRequestInterception(true);
+
+      // Listen for network requests
+      page.on('request', request => {
+        request.continue();
+      });
+
+      // Create a promise to store API response
+      const apiResponsePromise = new Promise((resolve) => {
+        page.on('response', async response => {
+          const url = response.url();
+          if (url.includes('/v3/api/multimodal/video/my/batchCursor')) {
+            try {
+              const responseData = await response.json();
+              resolve(responseData);
+            } catch (error) {
+              console.error('Error parsing response:', error);
+              resolve(null);
+            }
+          }
+        });
+      });
+
+      // Navigate to create page with retry logic
+      console.log('Navigating to hailuoai.video/create with retry logic...');
+      let retryCount = 0;
+      const maxRetries = 3;
+      let navigationSuccessful = false;
+
+      while (retryCount < maxRetries && !navigationSuccessful) {
+        try {
+          console.log(`Navigation attempt ${retryCount + 1}/${maxRetries}`);
+          await page.goto('https://hailuoai.video/create', {
+            waitUntil: ['domcontentloaded', 'networkidle0'],
+            timeout: 45000,
+          });
+          navigationSuccessful = true;
+          console.log(`Navigation succeeded on attempt ${retryCount + 1}`);
+        } catch (error) {
+          retryCount++;
+          console.log(`Navigation attempt ${retryCount} failed:`, error.message);
+          
+          if (retryCount === maxRetries) {
+            // On final attempt failure, mark cookie as inactive and throw
+            throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
+          }
+          
+          // Reduce wait time between retries from 5000 * retryCount to 3000 * retryCount
+          const waitTime = 3000 * retryCount;
+          console.log(`Waiting ${waitTime}ms before retry...`);
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+        }
+      }
+
+      // Khôi phục browserProfile sau khi điều hướng nếu có
+      if (browser['_browserProfile']) {
+        await this.restoreBrowserProfile(page, browser['_browserProfile']);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 6000));
+
+      // Check if user is logged in by looking for avatar
+      console.log('Checking login status...');
+      const isLoggedIn = await page.evaluate(() => {
+        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"], img[alt="AI Video avatar by Hailuo AI Video Generator"]');
+        return !!avatarImg;
+      });
+
+      if (!isLoggedIn) {
+        console.log('User is not logged in');
+        
+        // Take a screenshot when login error is detected
+        try {
+          const screenshotPath = `login-error-${Date.now()}.png`;
+          await page.screenshot({ path: screenshotPath });
+          console.log(`Login error screenshot saved to ${screenshotPath}`);
+          this.logger.log(`Login error screenshot saved to ${screenshotPath}`);
+        } catch (screenshotError) {
+          console.error('Failed to take login error screenshot:', screenshotError);
+          this.logger.error('Failed to take login error screenshot:', screenshotError);
+        }
+        
+        // Close browser properly before updating account status, but only if we created it
+        if (browser && shouldCloseBrowser) {
+          await browser.close().catch(e => {
+            console.error('Error closing browser after login error:', e);
+          });
+          browser = null; // Set to null so we don't try to close it again in finally block
+        }
+        
+        throw new Error('User is not logged in - please login first');
+      }
+
+      console.log('User is logged in, proceeding with video list fetch');
+
+      // Wait for API response with reduced timeout from 30000 to 20000
+      const apiResponse: any = await Promise.race([
+        apiResponsePromise,
+        new Promise((_, reject) => setTimeout(() => {
+          reject(new Error('API timeout'));
+        }, 20000))
+      ]);
+
+      if (apiResponse && apiResponse.data && apiResponse.data.batchVideos) {
+        for (const batch of apiResponse.data.batchVideos) {
+          for (const asset of batch.assets) {
+            const videoResult = {
+              batchId: batch.batchID,
+              batchType: batch.batchType,
+              videoId: asset.id,
+              description: asset.desc,
+              coverUrl: asset.coverURL,
+              videoUrl: asset.videoURL,
+              downloadUrl: asset.downloadURL,
+              status: asset.status,
+              width: asset.width,
+              height: asset.height,
+              hasVoice: asset.hasVoice,
+              message: asset?.message,
+              modelId: asset.modelID,
+              userId: asset.userID.toString(),
+              createType: asset.createType,
+              promptImgUrl: asset.promptImgURL,
+              extra: asset.extra,
+              accountId: account.id,
+              createTime: String(asset.createTime || new Date().getTime()),
+            };
+            videoResults.push(videoResult);
+          }
+        }
+      }
+
+      // Close browser properly before returning, but only if we created it
+      if (browser && shouldCloseBrowser) {
+        await browser.close().catch(e => {
+          console.error('Error closing browser after successful fetch:', e);
+        });
+        browser = null; // Set to null so we don't try to close it again in finally block
+      }
+
+      return {
+        success: true,
+        data: videoResults,
+        message: 'Videos list captured successfully'
+      };
     } catch (error) {
+      // Handle errors during browser operations
+      console.error('Inner operation error:', error.message);
+      
+      // Take a screenshot if possible
+      if (page && !page.isClosed()) {
+        try {
+          const screenshotPath = `getvideos-inner-error-${Date.now()}.png`;
+          await page.screenshot({ path: screenshotPath });
+          console.log(`Error screenshot saved to ${screenshotPath}`);
+          this.logger.log(`Error screenshot saved to ${screenshotPath}`);
+        } catch (screenshotError) {
+          console.error('Failed to take error screenshot:', screenshotError);
+        }
+      }
+      
+      // Close browser gracefully, but only if we created it
+      if (browser && shouldCloseBrowser) {
+        await browser.close().catch(e => {
+          console.error('Error closing browser after inner error:', e);
+        });
+        browser = null; // Set to null so we don't try to close it again in finally block
+      }
+      
+      // Re-throw the error
       this.logger.error('Error getting videos list:', error);
-      
-      // No need to take screenshot here as it's handled in the inner try/catch
-      
       throw new Error(`Failed to get videos list: ${error.message}`);
     } finally {
-      // Final cleanup - only if browser wasn't already closed
-      if (browser) {
+      // Final cleanup - only if browser wasn't already closed and we created it
+      if (browser && shouldCloseBrowser) {
         try {
           await browser.close();
           console.log('Browser closed in finally block');
@@ -918,7 +919,6 @@ export class HailuoService {
     }
   }
 
-
   async processJob(account: Account, job: JobQueue) {
     const { imageUrl, prompt, generateTimes = 1 } = job;
     let browser;
@@ -927,21 +927,32 @@ export class HailuoService {
     try {
       console.log(`[ProcessJob] Starting for account ${account.email}`);
       
-      // First check how many videos are currently being generated
+      // First initialize the browser for both operations to avoid multiple browser instances
+      // This improves performance by reusing the same browser instance for checking video count and creating new videos
+      console.log('[ProcessJob] Initializing browser...');
+      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, undefined, 'processJob');
+      browser = initializedBrowser;
+      page = initializedPage;
+
+      // Then check how many videos are currently being generated using the same browser instance
       console.log('[ProcessJob] Checking current video generation count...');
-      const videosListResponse = await this.getVideosList(account);
+      const videosListResponse = await this.getVideosList(account, browser, page);
       const generatingVideos = videosListResponse.data.filter(video => !video.videoUrl);
       console.log(`[ProcessJob] Found ${generatingVideos.length} videos currently being generated`);
       
       if (generatingVideos.length >= 5) {
         console.log(`[ProcessJob] Generation limit reached: ${generatingVideos.length} videos in progress`);
+        
+        // Close browser before throwing error
+        if (browser) {
+          await browser.close().catch(e => {
+            console.error('[ProcessJob] Error closing browser after limit check:', e);
+          });
+          browser = null;
+        }
+        
         throw new Error('Maximum concurrent video generation limit (5) reached. Please try again later.');
       }
-
-      console.log('[ProcessJob] Initializing browser...');
-      const { browser: initializedBrowser, page: initializedPage, browserProfile } = await this.initializeBrowser(account, undefined, 'processJob');
-      browser = initializedBrowser;
-      page = initializedPage;
 
       // Wrap all browser operations in a try/catch to ensure proper cleanup
       try {
@@ -1431,7 +1442,7 @@ export class HailuoService {
       
       // Check if user is logged in by looking for avatar
       const isLoggedIn = await page.evaluate(() => {
-        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"]');
+        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"], img[alt="AI Video avatar by Hailuo AI Video Generator"]');
         return !!avatarImg;
       });
       
