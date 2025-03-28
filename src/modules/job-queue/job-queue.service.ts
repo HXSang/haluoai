@@ -90,7 +90,9 @@ export class JobQueueService {
 
   async markAsProcessing(id: number) {
     const queue = await this.findOne(id);
-    if (!queue.startAt) {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    console.log("queue.startAt", queue.startAt);
+    if (!queue.startAt || queue.startAt < oneDayAgo) {
       await this.jobQueueRepository.update(id, {
         startAt: new Date(),
       });

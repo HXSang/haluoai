@@ -49,7 +49,7 @@ export class AccountService {
   async loginHailuoaiByGoogle(createGAccountDto: CreateGAccountDto) {
     const account = await this.accountRepository.findFirst({
       where: {
-        email: createGAccountDto.email,
+        id: createGAccountDto.accountId,
       },
     });
     if (!account) {
