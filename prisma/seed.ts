@@ -30,6 +30,34 @@ async function seedAccount() {
             isCookieActive: false,
             isActive: true,
         },
+        {
+            email: 'ae@colorme.vn',
+            password: 'color1234',
+            cookie: '',
+            isCookieActive: true,
+            isActive: true,
+        },
+        {
+            email: 'projecth025@gmail.com',
+            password: 'Ngonluarucchay2025',
+            cookie: '',
+            isCookieActive: false,
+            isActive: true,
+        },
+        {
+            email: 'studiohub001@gmail.com',
+            password: 'Ngonluarucchay@2025',
+            cookie: '',
+            isCookieActive: false,
+            isActive: true,
+        },
+        {
+            email: 'amwc0003@gmail.com',
+            password: 'Ngonluarucchay2025',
+            cookie: '',
+            isCookieActive: false,
+            isActive: true,
+        }
     ];
     
     for (const account of accounts) {
@@ -41,7 +69,7 @@ async function seedAccount() {
         if (existingAccount) {
             continue;
         }   
-        account.password = await bcrypt.hash(account.password, 10); 
+        // account.password = await bcrypt.hash(account.password, 10); 
         await prisma.account.create({
             data: account,
         });

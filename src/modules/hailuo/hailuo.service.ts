@@ -554,7 +554,7 @@ export class HailuoService {
       // Click Google login button
       await page.evaluate(() => {
         const googleButton = Array.from(
-          document.querySelectorAll('div.font-medium'),
+          document.querySelectorAll('span'),
         ).find((button) =>
           button.textContent?.includes('Continue with Google'),
         );

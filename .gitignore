@@ -56,7 +56,14 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # profile
-browser-data*/
+browser-data-1
+browser-data-2
+browser-data-3
+browser-data-4
+
+
+
+
 
 # uploads
 uploads/
