@@ -30,6 +30,8 @@ async function bootstrap() {
       'http://localhost:3000',
       'http://localhost:5173',
       'https://hailuoai.airing.network',
+      'https://animo-hailuoai.netlify.app',
+      'https://animo.airing.network',
       // all origin
       '*',
     ],
