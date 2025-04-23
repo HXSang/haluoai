@@ -7,7 +7,7 @@ LOG_FILE="/home/ubuntu/hailuoai/load_balancer.log"
 SCRIPT_DIR="/home/ubuntu/hailuoai"
 
 # API endpoint to check
-API_URL="http://localhost:80/api/v1/ping"
+API_URL="http://localhost:80/api/ping"
 
 # Function to log message
 log_message() {
