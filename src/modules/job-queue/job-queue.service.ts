@@ -25,7 +25,7 @@ export class JobQueueService {
       userId: user.id,
       modelId: createJobQueueDto.modelId,
       note: createJobQueueDto.note,
-      ...(createJobQueueDto.startAt && { startAt: createJobQueueDto.startAt }),
+      startAt: createJobQueueDto.startAt || null,
     });
   }
 
