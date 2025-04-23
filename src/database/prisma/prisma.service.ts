@@ -67,11 +67,24 @@ export class PrismaService
     this.$on('query', ({ query, params }) => {
       const transformedQuery = this.simplifyQuery(query, params);
       this.loggerTerminal.log(blue(transformedQuery));
-      this.logger.info({
-        timestamp: new Date().toISOString(),
-        query: transformedQuery,
-        params: JSON.parse(params)
-      });
+      try {
+        // Sanitize the params string by replacing newlines and other control characters
+        const sanitizedParams = params.replace(/[\n\r\t\b\f\v]/g, ' ').trim();
+        const parsedParams = JSON.parse(sanitizedParams);
+        this.logger.info({
+          timestamp: new Date().toISOString(),
+          query: transformedQuery,
+          params: parsedParams
+        });
+      } catch (error) {
+        // If JSON parsing fails, log the error and the raw params
+        this.logger.error({
+          timestamp: new Date().toISOString(),
+          message: 'Failed to parse query params',
+          error: error.message,
+          rawParams: params
+        });
+      }
     });
   }
 
