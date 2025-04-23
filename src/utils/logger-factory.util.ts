@@ -1,31 +1,48 @@
 import { createLogger, format, transports } from 'winston';
 import path from 'path';
-import { COMMON_CONSTANT } from '@n-constants';
 
-export const logger = ({ infoFile, errorFile }) =>
-  createLogger({
+interface LoggerConfig {
+  infoFile: string;
+  errorFile: string;
+  apiFile?: string;
+}
+
+export const logger = ({ infoFile, errorFile, apiFile }: LoggerConfig) => {
+  const loggerTransports = [
+    new transports.Console({
+      format: format.combine(
+        format.colorize(),
+        format.simple()
+      )
+    }),
+    new transports.File({
+      filename: path.join(__dirname, `../../logs/${errorFile}`),
+      level: 'error',
+    }),
+    new transports.File({
+      filename: path.join(__dirname, `../../logs/${infoFile}`),
+    }),
+  ];
+
+  if (apiFile) {
+    loggerTransports.push(
+      new transports.File({
+        filename: path.join(__dirname, `../../logs/${apiFile}`),
+      })
+    );
+  }
+
+  return createLogger({
     level: 'info',
     format: format.combine(
       format.timestamp({
-        format: COMMON_CONSTANT.LOG_TIMESTAMP_FORMAT,
+        format: 'YYYY-MM-DD HH:mm:ss',
       }),
       format.errors({ stack: true }),
       format.splat(),
       format.json(),
     ),
-    defaultMeta: { service: 'category-sync-data' },
-    transports: [
-      new transports.File({
-        filename: path.join(__dirname, `../../logs/${errorFile}`),
-        level: 'error',
-      }),
-      new transports.File({
-        filename: path.join(__dirname, `../../logs/${infoFile}`),
-      }),
-    ],
+    defaultMeta: {},
+    transports: loggerTransports,
   });
-
-export const devLogger = logger({
-  infoFile: 'dev-info.log',
-  errorFile: 'dev-error.log',
-});
+};

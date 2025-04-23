@@ -67,6 +67,11 @@ export class PrismaService
     this.$on('query', ({ query, params }) => {
       const transformedQuery = this.simplifyQuery(query, params);
       this.loggerTerminal.log(blue(transformedQuery));
+      this.logger.info({
+        timestamp: new Date().toISOString(),
+        query: transformedQuery,
+        params: JSON.parse(params)
+      });
     });
   }
 

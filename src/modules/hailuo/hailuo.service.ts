@@ -1067,9 +1067,9 @@ export class HailuoService {
 
         // Wait for create button and click it
         console.log('[ProcessJob] Finding create button...');
-        const createButton = await page.waitForSelector('.pink-gradient-btn');
+        const createButton = await page.waitForSelector('.new-color-btn-bg');
         console.log('[ProcessJob] Create button found:', !!createButton);
-        await page.click('.pink-gradient-btn');
+        await page.click('.new-color-btn-bg');
         console.log('[ProcessJob] Create button clicked');
 
         // Wait for some indication of success

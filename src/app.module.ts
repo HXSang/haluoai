@@ -31,6 +31,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { ApiLoggerInterceptor } from './interceptors/api-logger.interceptor';
 
 @Module({
   imports: [
@@ -72,6 +73,10 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
   providers: [
     PrismaService,
     AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiLoggerInterceptor,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
