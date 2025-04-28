@@ -138,14 +138,14 @@ export class JobQueueService {
     });
   }
 
-  async process(id: number, accountId?: number) {
+  async process(id: number, accountId?: number, force = false) {
     const job = await this.findOne(id);
 
     if (!job) {
       throw new NotFoundException(`Job with ID ${id} not found`);
     }
 
-    if (job.generatedTimes >= job.generateTimes) {
+    if (job.generatedTimes >= job.generateTimes && !force) {
       await this.markAsCompleted(id);
       return;
     }

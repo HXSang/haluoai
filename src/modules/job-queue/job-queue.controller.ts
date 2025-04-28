@@ -51,7 +51,7 @@ export class JobQueueController {
 
   @Post('/:id/process')
   process(@Param('id') id: string) {
-    return this.jobQueueService.process(+id);
+    return this.jobQueueService.process(+id, undefined, true);
   }
 
   @Get(':id')

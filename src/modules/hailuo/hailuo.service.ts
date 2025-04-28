@@ -1018,7 +1018,7 @@ export class HailuoService {
 
         // Wait for upload to complete
         console.log('[ProcessJob] Waiting 8s for upload to process...');
-        await new Promise(resolve => setTimeout(resolve, 8000));
+        await new Promise(resolve => setTimeout(resolve, 18000));
         console.log('[ProcessJob] Upload processing completed');
 
         // Check if upload was successful by looking for the uploaded image element
