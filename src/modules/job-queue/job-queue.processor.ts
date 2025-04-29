@@ -55,68 +55,68 @@ export class JobQueueProcessor {
     this.accountRunningStatus[accountId] = false;
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
-  async processJobs() {
-    this.logger.log('processJobs at ' + new Date().toISOString());
-    if (!this.isActiveJobQueue || this.isProcessing) {
-      return;
-    }
+  // @Cron(CronExpression.EVERY_30_SECONDS)
+  // async processJobs() {
+  //   this.logger.log('processJobs at ' + new Date().toISOString());
+  //   if (!this.isActiveJobQueue || this.isProcessing) {
+  //     return;
+  //   }
 
-    try {
-      this.isProcessing = true;
-      const job = await this.jobQueueService.findPendingJob();
+  //   try {
+  //     this.isProcessing = true;
+  //     const job = await this.jobQueueService.findPendingJob();
 
-      console.log('Found job: ', job);
+  //     console.log('Found job: ', job);
 
-      if (!job) {
-        this.logger.log('No pending job found');
-        return;
-      }
+  //     if (!job) {
+  //       this.logger.log('No pending job found');
+  //       return;
+  //     }
 
-      const account = await this.getOrCheckAccount(job.accountId);
+  //     const account = await this.getOrCheckAccount(job.accountId);
 
-      if (account === false) {
-        this.jobQueueService.markAsFailed(job.id, 'Account is not available');
-        return;
-      }
+  //     if (account === false) {
+  //       this.jobQueueService.markAsFailed(job.id, 'Account is not available');
+  //       return;
+  //     }
 
-      if (!account) {
-        this.logger.log('No active account found');
-        return;
-      }
+  //     if (!account) {
+  //       this.logger.log('No active account found');
+  //       return;
+  //     }
 
-      try {
-        console.log('Handle job: ', job.id);
-        await this.jobQueueService.markAsProcessing(job.id);
+  //     try {
+  //       console.log('Handle job: ', job.id);
+  //       await this.jobQueueService.markAsProcessing(job.id);
 
-        await this.jobQueueService.process(job.id, account.id);
+  //       await this.jobQueueService.process(job.id, account.id);
 
-        // await this.jobQueueService.markAsCompleted(job.id);
-        this.logger.log(`Successfully processed job ${job.id}`);
-      } catch (error) {
-        // Check if it's the concurrent limit error
-        if (
-          error.message.includes(
-            'Maximum concurrent video generation limit (5) reached',
-          )
-        ) {
-          this.logger.warn(`Job ${job.id} skipped: ${error.message}`);
-          await this.jobQueueService.markAsPending(job.id); // Reset back to pending
-        } else {
-          await this.jobQueueService.markAsFailed(job.id, error.message);
-          this.logger.error(
-            `Failed to process job ${job.id}: ${error.message}`,
-          );
-        }
-      } finally {
-        this.releaseAccountLock(account.id);
-      }
-    } catch (error) {
-      this.logger.error(`Error in job processing: ${error.message}`);
-    } finally {
-      this.isProcessing = false;
-    }
-  }
+  //       // await this.jobQueueService.markAsCompleted(job.id);
+  //       this.logger.log(`Successfully processed job ${job.id}`);
+  //     } catch (error) {
+  //       // Check if it's the concurrent limit error
+  //       if (
+  //         error.message.includes(
+  //           'Maximum concurrent video generation limit (5) reached',
+  //         )
+  //       ) {
+  //         this.logger.warn(`Job ${job.id} skipped: ${error.message}`);
+  //         await this.jobQueueService.markAsPending(job.id); // Reset back to pending
+  //       } else {
+  //         await this.jobQueueService.markAsFailed(job.id, error.message);
+  //         this.logger.error(
+  //           `Failed to process job ${job.id}: ${error.message}`,
+  //         );
+  //       }
+  //     } finally {
+  //       this.releaseAccountLock(account.id);
+  //     }
+  //   } catch (error) {
+  //     this.logger.error(`Error in job processing: ${error.message}`);
+  //   } finally {
+  //     this.isProcessing = false;
+  //   }
+  // }
 
   // job run getVideosList
   @Cron(CronExpression.EVERY_MINUTE)
@@ -201,71 +201,71 @@ export class JobQueueProcessor {
   //   }
   // }
 
-  // @Cron(CronExpression.EVERY_30_SECONDS)
-  // async processJobs() {
-  //   this.logger.log('processJobs at ' + new Date().toISOString());
-  //   if (!this.isActiveJobQueue || this.isProcessing) {
-  //     return;
-  //   }
+  @Cron(CronExpression.EVERY_30_SECONDS)
+  async processJobs() {
+    this.logger.log('processJobs at ' + new Date().toISOString());
+    if (!this.isActiveJobQueue || this.isProcessing) {
+      return;
+    }
 
-  //   try {
-  //     this.isProcessing = true;
-  //     const groupedJobs = await this.jobQueueService.findPendingJobsGroupedByAccount();
+    try {
+      this.isProcessing = true;
+      const groupedJobs = await this.jobQueueService.findPendingJobsGroupedByAccount();
 
-  //     if (!groupedJobs || Object.keys(groupedJobs).length === 0) {
-  //       this.logger.log('No pending jobs found');
-  //       return;
-  //     }
+      if (!groupedJobs || Object.keys(groupedJobs).length === 0) {
+        this.logger.log('No pending jobs found');
+        return;
+      }
 
-  //     // Process jobs for each account concurrently
-  //     const processPromises = Object.entries(groupedJobs).map(async ([accountIdStr, jobs]) => {
-  //       const accountId = accountIdStr === 'unassigned' ? undefined : parseInt(accountIdStr);
-  //       const account = await this.getOrCheckAccount(accountId);
+      // Process jobs for each account concurrently
+      const processPromises = Object.entries(groupedJobs).map(async ([accountIdStr, jobs]) => {
+        const accountId = accountIdStr === 'unassigned' ? undefined : parseInt(accountIdStr);
+        const account = await this.getOrCheckAccount(accountId);
 
-  //       if (account === false) {
-  //         // Mark all jobs for this account as failed
-  //         await Promise.all(jobs.map(job =>
-  //           this.jobQueueService.markAsFailed(job.id, "Account is not available")
-  //         ));
-  //         return;
-  //       }
+        if (account === false) {
+          // Mark all jobs for this account as failed
+          await Promise.all(jobs.map(job =>
+            this.jobQueueService.markAsFailed(job.id, "Account is not available")
+          ));
+          return;
+        }
 
-  //       if (!account) {
-  //         this.logger.log(`No active account found for accountId: ${accountId}`);
-  //         return;
-  //       }
+        if (!account) {
+          this.logger.log(`No active account found for accountId: ${accountId}`);
+          return;
+        }
 
-  //       try {
-  //         // Process all jobs for this account sequentially
-  //         for (const job of jobs) {
-  //           try {
-  //             this.logger.log(`Processing job ${job.id} for account ${account.id}`);
-  //             await this.jobQueueService.markAsProcessing(job.id);
-  //             await this.jobQueueService.process(job.id, account.id);
-  //             this.logger.log(`Successfully processed job ${job.id}`);
-  //           } catch (error) {
-  //             if (error.message.includes('Maximum concurrent video generation limit (5) reached')) {
-  //               this.logger.warn(`Job ${job.id} skipped: ${error.message}`);
-  //               await this.jobQueueService.markAsPending(job.id);
-  //             } else {
-  //               await this.jobQueueService.markAsFailed(job.id, error.message);
-  //               this.logger.error(`Failed to process job ${job.id}: ${error.message}`);
-  //             }
-  //             // Break the loop for this account if we hit an error
-  //             break;
-  //           }
-  //         }
-  //       } finally {
-  //         this.releaseAccountLock(account.id);
-  //       }
-  //     });
+        try {
+          // Process all jobs for this account sequentially
+          for (const job of jobs) {
+            try {
+              this.logger.log(`Processing job ${job.id} for account ${account.id}`);
+              await this.jobQueueService.markAsProcessing(job.id);
+              await this.jobQueueService.process(job.id, account.id);
+              this.logger.log(`Successfully processed job ${job.id}`);
+            } catch (error) {
+              if (error.message.includes('Maximum concurrent video generation limit (5) reached')) {
+                this.logger.warn(`Job ${job.id} skipped: ${error.message}`);
+                await this.jobQueueService.markAsPending(job.id);
+              } else {
+                await this.jobQueueService.markAsFailed(job.id, error.message);
+                this.logger.error(`Failed to process job ${job.id}: ${error.message}`);
+              }
+              // Break the loop for this account if we hit an error
+              break;
+            }
+          }
+        } finally {
+          this.releaseAccountLock(account.id);
+        }
+      });
 
-  //     // Wait for all account job processing to complete
-  //     await Promise.all(processPromises);
-  //   } catch (error) {
-  //     this.logger.error(`Error in job processing: ${error.message}`);
-  //   } finally {
-  //     this.isProcessing = false;
-  //   }
-  // }
+      // Wait for all account job processing to complete
+      await Promise.all(processPromises);
+    } catch (error) {
+      this.logger.error(`Error in job processing: ${error.message}`);
+    } finally {
+      this.isProcessing = false;
+    }
+  }
 }

@@ -764,6 +764,7 @@ export class HailuoService {
 
       while (retryCount < maxRetries && !navigationSuccessful) {
         try {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
           console.log(`Navigation attempt ${retryCount + 1}/${maxRetries}`);
           await page.goto('https://hailuoai.video/create', {
             waitUntil: ['domcontentloaded', 'networkidle0'],
