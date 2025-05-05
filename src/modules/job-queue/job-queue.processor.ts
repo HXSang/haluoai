@@ -119,7 +119,7 @@ export class JobQueueProcessor {
   // }
 
   // job run getVideosList
-  @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron(CronExpression.EVERY_MINUTE)
   async getVideosList() {
     this.logger.log('getVideosList at ' + new Date().toISOString());
     if (!this.isActiveJobQueue || this.isGettingVideos) {
@@ -201,7 +201,7 @@ export class JobQueueProcessor {
   //   }
   // }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async processJobs() {
     this.logger.log('processJobs at ' + new Date().toISOString());
     if (!this.isActiveJobQueue || this.isProcessing) {
@@ -221,7 +221,9 @@ export class JobQueueProcessor {
       const processPromises = Object.entries(groupedJobs).map(async ([accountIdStr, jobs]) => {
         const accountId = accountIdStr === 'unassigned' ? undefined : parseInt(accountIdStr);
         const account = await this.getOrCheckAccount(accountId);
-
+        await this.accountService.updateLastOpenAt(accountId);
+        await this.accountService.syncAccountVideos(accountId);
+        
         if (account === false) {
           // Mark all jobs for this account as failed
           await Promise.all(jobs.map(job =>

@@ -5,13 +5,15 @@ import { AccountRepository } from './account.repository';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Account, JobQueue } from '@prisma/client';
+import { Account, JobQueue, QueueStatus } from '@prisma/client';
 import { HailuoService } from '@n-modules/hailuo/hailuo.service';
 import { PrismaService } from '@n-database/prisma/prisma.service';
 import { FilterAccountDto } from './dto/filter-account.dto';
 import { VideoResultService } from '@n-modules/video-result/video-result.service';
 import { CreateGAccountDto } from './dto/create-g-account.dto';
 import { VideoResultRepository } from '@n-modules/video-result/video-result.repository';
+import { JobQueueRepository } from '@n-modules/job-queue/job-queue.repository';
+
 @Injectable()
 export class AccountService {
   private readonly logger = new Logger(AccountService.name);
@@ -22,6 +24,7 @@ export class AccountService {
     private readonly videoResultRepository: VideoResultRepository,
     private readonly hailouService: HailuoService,
     private readonly prisma: PrismaService,
+    private readonly jobQueueRepository: JobQueueRepository,
   ) {}
 
   async findAll() {
@@ -76,6 +79,16 @@ export class AccountService {
 
   // get videos list of account
   async syncAccountVideos(accountId: number, availableJobQueue?: JobQueue[]) {
+    const jobQueues = availableJobQueue || await this.jobQueueRepository.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where: {
+        status: QueueStatus.COMPLETED,
+      },
+      take: 5,
+    });
+
     const account = await this.accountRepository.findUnique({
       where: {
         id: accountId,
@@ -103,8 +116,8 @@ export class AccountService {
             },
           });
           // find jobqueue promt match video description
-          const jobQueue = availableJobQueue
-            ? availableJobQueue?.find(
+          const jobQueue = jobQueues
+            ? jobQueues?.find(
                 (job) => job.prompt.trim() === video.description.trim(),
               )
             : null;
