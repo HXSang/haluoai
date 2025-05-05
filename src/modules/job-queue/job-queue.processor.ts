@@ -201,7 +201,7 @@ export class JobQueueProcessor {
   //   }
   // }
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_MINUTE)
   async processJobs() {
     this.logger.log('processJobs at ' + new Date().toISOString());
     if (!this.isActiveJobQueue || this.isProcessing) {
