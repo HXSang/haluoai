@@ -79,14 +79,14 @@ export class AccountService {
 
   // get videos list of account
   async syncAccountVideos(accountId: number, availableJobQueue?: JobQueue[]) {
-    const jobQueues = availableJobQueue || await this.jobQueueRepository.findMany({
+    const jobQueues = (availableJobQueue && availableJobQueue?.length > 0) ? availableJobQueue : await this.jobQueueRepository.findMany({
       orderBy: {
         createdAt: 'desc',
       },
       where: {
         status: QueueStatus.COMPLETED,
       },
-      take: 5,
+      take: 10,
     });
 
     const account = await this.accountRepository.findUnique({
@@ -125,7 +125,7 @@ export class AccountService {
           if (jobQueue && jobQueue?.userId && !existVideo?.creatorId) {
             video.creatorId = jobQueue.userId;
           }
-          if (jobQueue && existVideo?.jobQueueId) {
+          if (jobQueue && !existVideo?.jobQueueId) {
             video.jobQueueId = jobQueue.id;
           }
 
