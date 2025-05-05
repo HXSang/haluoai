@@ -570,7 +570,7 @@ export class HailuoService {
         // Handle email input
         const emailInput = await popup.waitForSelector('input[type="email"]', {
           visible: true,
-          timeout: 4000,
+          timeout: 10000,
         });
         await emailInput.click({ clickCount: 3 });
         await emailInput.type(account.email, { delay: 100 });

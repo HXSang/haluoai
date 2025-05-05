@@ -252,6 +252,8 @@ export class JobQueueProcessor {
 
             this.logger.log(`Successfully processed job ${job.id}`);
           }
+        } catch (error) {
+          this.logger.error(`Error in job processing: ${error.message}`);
         } finally {
           this.releaseAccountLock(account.id);
         }
