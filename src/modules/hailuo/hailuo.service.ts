@@ -824,7 +824,10 @@ export class HailuoService {
           browser = null; // Set to null so we don't try to close it again in finally block
         }
         
-        throw new Error('User is not logged in - please login first');
+        return {
+          success: false,
+          message: 'User is not logged in - please login first',
+        };
       }
 
       console.log('User is logged in, proceeding with video list fetch');
@@ -938,6 +941,14 @@ export class HailuoService {
       // Then check how many videos are currently being generated using the same browser instance
       console.log('[ProcessJob] Checking current video generation count...');
       const videosListResponse = await this.getVideosList(account, browser, page);
+      if (!videosListResponse.success) {
+        return {
+          success: false,
+          isError: true,
+          message: videosListResponse.message,
+          actualGenerateTimes: 0,
+        };
+      }
       const generatingVideos = videosListResponse.data.filter(video => !video.videoUrl);
       console.log(`[ProcessJob] Found ${generatingVideos.length} videos currently being generated`);
       
@@ -954,6 +965,7 @@ export class HailuoService {
         
         return {
           success: false,
+          isError: false,
           message: 'Maximum concurrent video generation limit (5) reached. Please try again later.',
           actualGenerateTimes: 0,
         };
@@ -1113,16 +1125,23 @@ export class HailuoService {
           });
           browser = null; // Set to null so we don't try to close it again in finally block
         }
-        
-        // Re-throw the error
-        throw innerError;
+
+        return {
+          success: false,
+          isError: true,
+          message: innerError.message,
+          actualGenerateTimes: 0,
+        };
       }
     } catch (error) {
       console.error('[ProcessJob] Error:', error.message);
-      
-      // No need to take screenshot here as it's handled in the inner try/catch if possible
-      
-      throw new Error(`Failed to upload image and create video: ${error.message}`);
+
+      return {
+        success: false,
+        isError: true,
+        message: error.message,
+        actualGenerateTimes: 0,
+      };
     } finally {
       // Final cleanup - only if browser wasn't already closed
       if (browser) {

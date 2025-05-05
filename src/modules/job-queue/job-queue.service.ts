@@ -128,7 +128,7 @@ export class JobQueueService {
     return this.jobQueueRepository.update(id, {
       status: QueueStatus.PENDING,
       message,
-      retryTimes: (job.retryTimes || 0) + 1,
+      retryTimes: (job.retryTimes ? Number(job.retryTimes) : 0) + 1,
     });
   }
 
@@ -187,6 +187,7 @@ export class JobQueueService {
     );
 
     const result = await this.hailuoService.processJob(account, job);
+    console.log('result: ', result);
     let message = '';
 
     // update generatedTimes
@@ -199,10 +200,6 @@ export class JobQueueService {
 
     if (result.success === false) {
       message = result.message;
-    }
-
-    if (result.actualGenerateTimes === 0 && newStatus === QueueStatus.PENDING) {
-      message = 'Account has reached max queue number, continue waiting...';
     }
 
     await this.jobQueueRepository.update(id, {

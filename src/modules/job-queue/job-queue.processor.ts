@@ -23,7 +23,7 @@ export class JobQueueProcessor {
     private readonly accountRepository: AccountRepository,
     private readonly videoResultService: VideoResultService,
     private readonly jobQueueRepository: JobQueueRepository,
-  ) {}
+  ) { }
 
   async getOrCheckAccount(accountId?: number) {
     console.log('getOrCheckAccount: ', accountId);
@@ -238,22 +238,19 @@ export class JobQueueProcessor {
         try {
           // Process all jobs for this account sequentially
           for (const job of jobs) {
-            try {
-              this.logger.log(`Processing job ${job.id} for account ${account.id}`);
-              await this.jobQueueService.markAsProcessing(job.id);
-              await this.jobQueueService.process(job.id, account.id);
-              this.logger.log(`Successfully processed job ${job.id}`);
-            } catch (error) {
-              if (error.message.includes('Maximum concurrent video generation limit (5) reached')) {
-                this.logger.warn(`Job ${job.id} skipped: ${error.message}`);
-                await this.jobQueueService.markAsPending(job.id);
-              } else {
-                await this.jobQueueService.markAsFailed(job.id, error.message);
-                this.logger.error(`Failed to process job ${job.id}: ${error.message}`);
-              }
-              // Break the loop for this account if we hit an error
-              break;
+            this.logger.log(`Processing job ${job.id} for account ${account.id}`);
+            await this.jobQueueService.markAsProcessing(job.id);
+            const result = await this.jobQueueService.process(job.id, account.id);
+
+            if (result.success === false && result.isError) {
+              await this.jobQueueService.markAsFailed(job.id, result.message);
             }
+
+            if (result.success === false && !result.isError) {
+              await this.jobQueueService.markAsPending(job.id);
+            }
+
+            this.logger.log(`Successfully processed job ${job.id}`);
           }
         } finally {
           this.releaseAccountLock(account.id);
