@@ -62,3 +62,40 @@ export const downloadImage = async (imageUrl: string): Promise<string> => {
     throw error;
   }
 };
+
+
+export function levenshteinDistance(a, b) {
+  const matrix = Array.from({ length: a.length + 1 }, () =>
+    Array(b.length + 1).fill(0)
+  );
+
+  for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+  for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = 1 + Math.min(
+          matrix[i - 1][j],     // remove
+          matrix[i][j - 1],     // insert
+          matrix[i - 1][j - 1]  // substitute
+        );
+      }
+    }
+  }
+
+  return matrix[a.length][b.length];
+}
+
+export function similarityPercent(a, b) {
+  const distance = levenshteinDistance(a, b);
+  const maxLength = Math.max(a.length, b.length);
+  if (maxLength === 0) return 100; // Both are empty
+  return ((1 - distance / maxLength) * 100);
+}
+
+export function isSimilarOver95(a, b) {
+  return similarityPercent(a, b) >= 95;
+}

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { JobQueueService } from './job-queue.service';
 import { JobQueueController } from './job-queue.controller';
 import { PrismaModule } from '@n-database/prisma/prisma.module';
@@ -9,9 +9,9 @@ import { VideoResultModule } from '@n-modules/video-result/video-result.module';
 import { HailuoModule } from '@n-modules/hailuo/hailuo.module';
 
 @Module({
-  imports: [PrismaModule, AccountModule, HailuoModule, VideoResultModule], 
+  imports: [PrismaModule, forwardRef(() => AccountModule), HailuoModule, VideoResultModule],
   controllers: [JobQueueController],
   providers: [JobQueueService, JobQueueRepository, JobQueueProcessor],
   exports: [JobQueueService, JobQueueRepository],
 })
-export class JobQueueModule {}
+export class JobQueueModule { }

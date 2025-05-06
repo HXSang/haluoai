@@ -13,6 +13,7 @@ import { VideoResultService } from '@n-modules/video-result/video-result.service
 import { CreateGAccountDto } from './dto/create-g-account.dto';
 import { VideoResultRepository } from '@n-modules/video-result/video-result.repository';
 import { JobQueueRepository } from '@n-modules/job-queue/job-queue.repository';
+import { isSimilarOver95 } from '@n-utils/helper';
 
 @Injectable()
 export class AccountService {
@@ -23,7 +24,6 @@ export class AccountService {
     private readonly videoResultService: VideoResultService,
     private readonly videoResultRepository: VideoResultRepository,
     private readonly hailouService: HailuoService,
-    private readonly prisma: PrismaService,
     private readonly jobQueueRepository: JobQueueRepository,
   ) {}
 
@@ -118,7 +118,10 @@ export class AccountService {
           // find jobqueue promt match video description
           const jobQueue = jobQueues
             ? jobQueues?.find(
-                (job) => job.prompt.trim() === video.description.trim(),
+                (job) => job.prompt.trim().toLowerCase().replace(/ /g, '') === video.description.trim().toLowerCase().replace(/ /g, '')
+                || job.prompt.trim()?.includes(video.description.trim())
+                || isSimilarOver95(job.prompt.trim(), video.description.trim())
+                ,
               )
             : null;
 
