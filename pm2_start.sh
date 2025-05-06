@@ -5,7 +5,7 @@ pm2 delete $app_name || true
 
 # Start the application with PM2
 echo "Starting the application with PM2..."
-pm2 start yarn --name $app_name -- dev
+pm2 start yarn --name $app_name -- start
 
 # Display PM2 status
 pm2 status
