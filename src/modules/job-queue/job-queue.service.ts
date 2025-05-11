@@ -222,7 +222,7 @@ export class JobQueueService {
         status: {
           in: [QueueStatus.PENDING, QueueStatus.PROCESSING],
         },
-        OR: [{ startAt: null }, { startAt: { lt: new Date() } }],
+        OR: [{ startAt: { lt: new Date() } }, { startAt: null }],
       },
       orderBy: {
         createdAt: 'asc',
@@ -236,7 +236,9 @@ export class JobQueueService {
         if (!acc[accountId]) {
           acc[accountId] = [];
         }
-        acc[accountId].push(job);
+        if (acc[accountId]?.length < 1) {
+          acc[accountId].push(job);
+        }
         return acc;
       },
       {},
