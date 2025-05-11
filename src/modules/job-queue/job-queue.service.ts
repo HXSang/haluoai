@@ -198,7 +198,7 @@ export class JobQueueService {
         ? QueueStatus.COMPLETED
         : QueueStatus.PENDING;
 
-    if (result.success === false) {
+    if (result?.success === false) {
       message = result.message;
     }
 

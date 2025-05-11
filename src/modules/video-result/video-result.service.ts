@@ -33,21 +33,9 @@ export class VideoResultService {
       ] }),
       ...(userId && { creatorId: userId }),
       ...(isMarked && { isMarked: true }),
+      ...(jobQueueId && { jobQueueId: jobQueueId }),
     };
 
-    if (jobQueueId) {
-      const queue = await this.prisma.jobQueue.findUnique({
-        where: {
-          id: Number(jobQueueId),
-        },
-      });
-      if (queue) {
-        where = {
-          ...where,
-          description: queue.prompt,
-        };
-      }
-    }
 
     const result = await this.videoResultRepository.paginate({
       page,
@@ -120,13 +108,13 @@ export class VideoResultService {
   }
 
 
-  // Tự động xoá các video tạo quá 15p mà vẫn chưa có result url
+  // Tự động xoá các video tạo quá 3p mà vẫn chưa có result url
   async autoDeleteVideo() {
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
     const videos = await this.videoResultRepository.findMany({
       where: {
         createTime: {
-          lte: fifteenMinutesAgo.toISOString(),
+          lte: threeMinutesAgo.toISOString(),
         },
         downloadUrl: null,
       },

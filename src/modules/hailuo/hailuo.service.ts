@@ -247,8 +247,8 @@ export class HailuoService {
           try {
             console.log(`initializeBrowser: Navigation attempt ${retryCount + 1}/${maxRetries}`);
             await page.goto('https://hailuoai.video/create', {
-              waitUntil: ['domcontentloaded', 'networkidle0'],
-              timeout: 45000,
+              waitUntil: 'domcontentloaded',
+              timeout: 30000,
             });
             navigationSuccessful = true;
             console.log(`initializeBrowser: Navigation succeeded on attempt ${retryCount + 1}`);
@@ -762,15 +762,23 @@ export class HailuoService {
       const maxRetries = 3;
       let navigationSuccessful = false;
 
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       while (retryCount < maxRetries && !navigationSuccessful) {
         try {
           await new Promise((resolve) => setTimeout(resolve, 1000));
-          console.log(`Navigation attempt ${retryCount + 1}/${maxRetries}`);
+          console.log(`Navigation attempt get videos list ${retryCount + 1}/${maxRetries}`);
           await page.goto('https://hailuoai.video/create', {
-            waitUntil: ['domcontentloaded', 'networkidle0'],
-            timeout: 45000,
+            waitUntil: ['domcontentloaded'],
+            timeout: 15000,
           });
           navigationSuccessful = true;
+
+          // if success, wait 5s
+          if (navigationSuccessful) {
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+          }
+
           console.log(`Navigation succeeded on attempt ${retryCount + 1}`);
         } catch (error) {
           retryCount++;
@@ -983,8 +991,8 @@ export class HailuoService {
           try {
             console.log(`[ProcessJob] Navigation attempt ${retryCount + 1}/${maxRetries}`);
             await page.goto('https://hailuoai.video/create', {
-              waitUntil: ['domcontentloaded', 'networkidle0'],
-              timeout: 45000,
+              waitUntil: ['domcontentloaded'],
+              timeout: 15000,
             });
             navigationSuccessful = true;
             console.log(`[ProcessJob] Navigation succeeded on attempt ${retryCount + 1}`);

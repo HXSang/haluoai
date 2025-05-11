@@ -85,9 +85,15 @@ export class AccountService {
       },
       where: {
         status: QueueStatus.COMPLETED,
+        accountId: accountId,
       },
-      take: 10,
+      select: {
+        id: true,
+        prompt: true,
+      },
+      take: 20,
     });
+    console.log('jobQueues: ', jobQueues?.map((job) => job.prompt));
 
     const account = await this.accountRepository.findUnique({
       where: {
@@ -98,6 +104,7 @@ export class AccountService {
       throw new Error('Account not found');
     }
     const videosResponse = await this.hailouService.getVideosList(account);
+
 
     if (videosResponse.success && videosResponse.data) {
       // Create video results in database
