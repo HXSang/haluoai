@@ -1219,8 +1219,8 @@ export class HailuoService {
       
       // Navigate to create page to ensure profile is loaded
       await page.goto('https://hailuoai.video/create', {
-        waitUntil: ['domcontentloaded', 'networkidle0'],
-        timeout: 45000,
+        waitUntil: ['domcontentloaded'],
+        timeout: 25000,
       });
 
       // Wait for page to settle
