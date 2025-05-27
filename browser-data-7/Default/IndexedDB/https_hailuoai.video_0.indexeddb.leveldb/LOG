@@ -1,0 +1,25 @@
+2025/05/27-14:50:50.259 8603 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-7/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/05/27-14:50:50.260 8603 Recovering log #179
+2025/05/27-14:50:50.261 8603 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-7/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000179.log 
+2025/05/27-14:50:50.261 8603 Delete type=2 #177
+2025/05/27-14:50:50.326 8503 Level-0 table #184: started
+2025/05/27-14:50:50.331 8503 Level-0 table #184: 4051 bytes OK
+2025/05/27-14:50:50.348 8503 Delete type=0 #179
+2025/05/27-14:50:50.350 8503 Manual compaction at level-0 from '\x00=\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00>\x00\x00\x00' @ 0 : 0; will stop at '\x00=\x00\x00\x05' @ 2948 : 1
+2025/05/27-14:50:50.350 8503 Compacting 1@0 + 1@1 files
+2025/05/27-14:50:50.359 8503 Generated table #185@0: 227 keys, 5635 bytes
+2025/05/27-14:50:50.359 8503 Compacted 1@0 + 1@1 files => 5635 bytes
+2025/05/27-14:50:50.368 8503 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/05/27-14:50:50.369 8503 Delete type=2 #184
+2025/05/27-14:50:50.370 8503 Manual compaction at level-0 from '\x00=\x00\x00\x05' @ 2948 : 1 .. '\x00>\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/05/27-14:50:52.753 8903 Level-0 table #187: started
+2025/05/27-14:50:52.764 8903 Level-0 table #187: 7488 bytes OK
+2025/05/27-14:50:52.780 8903 Delete type=2 #181
+2025/05/27-14:50:52.780 8903 Delete type=0 #183
+2025/05/27-14:50:52.784 8503 Manual compaction at level-0 from '\x00>\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00?\x00\x00\x00' @ 0 : 0; will stop at '\x00>\x00\x00\x05' @ 3016 : 1
+2025/05/27-14:50:52.784 8503 Compacting 1@0 + 1@1 files
+2025/05/27-14:50:52.788 8503 Generated table #188@0: 227 keys, 5634 bytes
+2025/05/27-14:50:52.788 8503 Compacted 1@0 + 1@1 files => 5634 bytes
+2025/05/27-14:50:52.804 8503 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/05/27-14:50:52.805 8503 Delete type=2 #187
+2025/05/27-14:50:52.805 8503 Manual compaction at level-0 from '\x00>\x00\x00\x05' @ 3016 : 1 .. '\x00?\x00\x00\x00' @ 0 : 0; will stop at (end)

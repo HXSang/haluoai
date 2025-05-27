@@ -1,0 +1,26 @@
+2025/05/27-14:51:33.579 8603 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-5/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/05/27-14:51:33.580 8603 Recovering log #75
+2025/05/27-14:51:33.581 8603 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-5/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000075.log 
+2025/05/27-14:51:33.581 8603 Delete type=2 #73
+2025/05/27-14:51:33.781 8603 Level-0 table #80: started
+2025/05/27-14:51:33.786 8603 Level-0 table #80: 921 bytes OK
+2025/05/27-14:51:33.794 8603 Delete type=0 #75
+2025/05/27-14:51:33.799 8603 Manual compaction at level-0 from '\x00\x1f\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00 \x00\x00\x00' @ 0 : 0; will stop at '\x00\x1f\x00\x00\x05' @ 1068 : 1
+2025/05/27-14:51:33.799 8603 Compacting 1@0 + 1@1 files
+2025/05/27-14:51:33.804 8603 Generated table #81@0: 77 keys, 1646 bytes
+2025/05/27-14:51:33.804 8603 Compacted 1@0 + 1@1 files => 1646 bytes
+2025/05/27-14:51:33.819 8603 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/05/27-14:51:33.820 8603 Delete type=2 #80
+2025/05/27-14:51:33.822 8603 Manual compaction at level-0 from '\x00\x1f\x00\x00\x05' @ 1068 : 1 .. '\x00 \x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/05/27-14:51:36.413 8f03 Level-0 table #83: started
+2025/05/27-14:51:36.431 8f03 Level-0 table #83: 1483 bytes OK
+2025/05/27-14:51:36.440 8f03 Delete type=2 #77
+2025/05/27-14:51:36.440 8f03 Delete type=0 #79
+2025/05/27-14:51:36.441 8603 Manual compaction at level-0 from '\x00 \x00\x00\x00' @ 72057594037927935 : 1 .. '\x00!\x00\x00\x00' @ 0 : 0; will stop at '\x00 \x00\x00\x05' @ 1113 : 1
+2025/05/27-14:51:36.441 8603 Compacting 1@0 + 1@1 files
+2025/05/27-14:51:36.487 8603 Generated table #84@0: 81 keys, 1716 bytes
+2025/05/27-14:51:36.487 8603 Compacted 1@0 + 1@1 files => 1716 bytes
+2025/05/27-14:51:36.505 8603 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/05/27-14:51:36.505 8603 Delete type=2 #83
+2025/05/27-14:51:36.506 8603 Manual compaction at level-0 from '\x00 \x00\x00\x05' @ 1113 : 1 .. '\x00!\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/05/27-14:51:47.892 f303 Manual compaction at level-0 from '\x00!\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00"\x00\x00\x00' @ 0 : 0; will stop at (end)
