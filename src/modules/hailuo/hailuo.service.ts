@@ -590,7 +590,6 @@ export class HailuoService {
         console.error('Error during popup handling:', popupError);
         // Take screenshot of main page if popup fails
         try {
-          await page.screenshot({ path: 'main-page-error.png' });
         } catch (e) {
           console.error('Failed to take main page screenshot');
         }
@@ -602,7 +601,6 @@ export class HailuoService {
       if (!loginSuccess) {
         // Take screenshot before throwing timeout error
         try {
-          await page.screenshot({ path: 'login-timeout-error.png' });
         } catch (e) {
           console.error('Failed to take timeout screenshot');
         }
@@ -624,7 +622,6 @@ export class HailuoService {
       if (cookies.length === 0) {
         // Take screenshot if no cookies found
         try {
-          await page.screenshot({ path: 'no-cookies-error.png' });
         } catch (e) {
           console.error('Failed to take no-cookies screenshot');
         }
@@ -655,7 +652,7 @@ export class HailuoService {
       if (page && !page.isClosed()) {
         try {
           const screenshotPath = `error-${Date.now()}.png`;
-          await page.screenshot({ path: screenshotPath });
+          
         this.logger.log(`Error screenshot saved to ${screenshotPath}`);
         } catch (e) {
           // Ignore screenshot errors
@@ -816,7 +813,7 @@ export class HailuoService {
         // Take a screenshot when login error is detected
         try {
           const screenshotPath = `login-error-${Date.now()}.png`;
-          await page.screenshot({ path: screenshotPath });
+          
           console.log(`Login error screenshot saved to ${screenshotPath}`);
           this.logger.log(`Login error screenshot saved to ${screenshotPath}`);
         } catch (screenshotError) {
@@ -898,7 +895,7 @@ export class HailuoService {
       if (page && !page.isClosed()) {
         try {
           const screenshotPath = `getvideos-inner-error-${Date.now()}.png`;
-          await page.screenshot({ path: screenshotPath });
+          
           console.log(`Error screenshot saved to ${screenshotPath}`);
           this.logger.log(`Error screenshot saved to ${screenshotPath}`);
         } catch (screenshotError) {
@@ -1119,7 +1116,7 @@ export class HailuoService {
         if (page && !page.isClosed()) {
           try {
             const screenshotPath = `processjob-error-${Date.now()}.png`;
-            await page.screenshot({ path: screenshotPath });
+            
             console.log(`[ProcessJob] Error screenshot saved to ${screenshotPath}`);
           } catch (screenshotError) {
             console.error('[ProcessJob] Failed to take error screenshot:', screenshotError);
@@ -1466,7 +1463,6 @@ export class HailuoService {
       
       // Take screenshot of initial state
       const initialScreenshotPath = `cookie-test-initial-${Date.now()}.png`;
-      await page.screenshot({ path: initialScreenshotPath });
       this.logger.log(`Initial state screenshot saved to ${initialScreenshotPath}`);
       
       // Wait for content to load
@@ -1480,7 +1476,6 @@ export class HailuoService {
       
       // Take screenshot after login check
       const finalScreenshotPath = `cookie-test-result-${Date.now()}.png`;
-      await page.screenshot({ path: finalScreenshotPath });
       this.logger.log(`Final state screenshot saved to ${finalScreenshotPath}`);
       
       // Get page HTML for further analysis if needed
@@ -1501,7 +1496,6 @@ export class HailuoService {
       if (page && !page.isClosed()) {
         try {
           const errorScreenshotPath = `cookie-test-error-${Date.now()}.png`;
-          await page.screenshot({ path: errorScreenshotPath });
           this.logger.log(`Error screenshot saved to ${errorScreenshotPath}`);
           
           return {
