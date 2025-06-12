@@ -105,6 +105,10 @@ export class AccountService {
     }
     const videosResponse = await this.hailouService.getVideosList(account);
 
+    if (videosResponse.isNotLogin){
+      this.setCookieActive(accountId, false);
+      this.getBrowserCookie(accountId)
+    }
 
     if (videosResponse.success && videosResponse.data) {
       // Create video results in database

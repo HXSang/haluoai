@@ -1,25 +1,25 @@
-2025/05/27-14:50:50.259 8603 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-7/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
-2025/05/27-14:50:50.260 8603 Recovering log #179
-2025/05/27-14:50:50.261 8603 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-7/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000179.log 
-2025/05/27-14:50:50.261 8603 Delete type=2 #177
-2025/05/27-14:50:50.326 8503 Level-0 table #184: started
-2025/05/27-14:50:50.331 8503 Level-0 table #184: 4051 bytes OK
-2025/05/27-14:50:50.348 8503 Delete type=0 #179
-2025/05/27-14:50:50.350 8503 Manual compaction at level-0 from '\x00=\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00>\x00\x00\x00' @ 0 : 0; will stop at '\x00=\x00\x00\x05' @ 2948 : 1
-2025/05/27-14:50:50.350 8503 Compacting 1@0 + 1@1 files
-2025/05/27-14:50:50.359 8503 Generated table #185@0: 227 keys, 5635 bytes
-2025/05/27-14:50:50.359 8503 Compacted 1@0 + 1@1 files => 5635 bytes
-2025/05/27-14:50:50.368 8503 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/05/27-14:50:50.369 8503 Delete type=2 #184
-2025/05/27-14:50:50.370 8503 Manual compaction at level-0 from '\x00=\x00\x00\x05' @ 2948 : 1 .. '\x00>\x00\x00\x00' @ 0 : 0; will stop at (end)
-2025/05/27-14:50:52.753 8903 Level-0 table #187: started
-2025/05/27-14:50:52.764 8903 Level-0 table #187: 7488 bytes OK
-2025/05/27-14:50:52.780 8903 Delete type=2 #181
-2025/05/27-14:50:52.780 8903 Delete type=0 #183
-2025/05/27-14:50:52.784 8503 Manual compaction at level-0 from '\x00>\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00?\x00\x00\x00' @ 0 : 0; will stop at '\x00>\x00\x00\x05' @ 3016 : 1
-2025/05/27-14:50:52.784 8503 Compacting 1@0 + 1@1 files
-2025/05/27-14:50:52.788 8503 Generated table #188@0: 227 keys, 5634 bytes
-2025/05/27-14:50:52.788 8503 Compacted 1@0 + 1@1 files => 5634 bytes
-2025/05/27-14:50:52.804 8503 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/05/27-14:50:52.805 8503 Delete type=2 #187
-2025/05/27-14:50:52.805 8503 Manual compaction at level-0 from '\x00>\x00\x00\x05' @ 3016 : 1 .. '\x00?\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/12-11:07:00.691 a203 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-7/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/06/12-11:07:00.692 a203 Recovering log #216
+2025/06/12-11:07:00.692 a203 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-7/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000216.log 
+2025/06/12-11:07:00.692 a203 Delete type=2 #215
+2025/06/12-11:07:00.889 a203 Level-0 table #221: started
+2025/06/12-11:07:00.893 a203 Level-0 table #221: 3983 bytes OK
+2025/06/12-11:07:00.904 a203 Delete type=0 #216
+2025/06/12-11:07:00.906 a203 Manual compaction at level-0 from '\x00H\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00I\x00\x00\x00' @ 0 : 0; will stop at '\x00H\x00\x00\x05' @ 3598 : 1
+2025/06/12-11:07:00.906 a203 Compacting 1@0 + 1@1 files
+2025/06/12-11:07:00.912 a203 Generated table #222@0: 234 keys, 5694 bytes
+2025/06/12-11:07:00.912 a203 Compacted 1@0 + 1@1 files => 5694 bytes
+2025/06/12-11:07:00.928 a203 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/06/12-11:07:00.929 a203 Delete type=2 #221
+2025/06/12-11:07:00.962 a203 Manual compaction at level-0 from '\x00H\x00\x00\x05' @ 3598 : 1 .. '\x00I\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/12-11:07:10.947 b803 Level-0 table #224: started
+2025/06/12-11:07:10.968 b803 Level-0 table #224: 4414 bytes OK
+2025/06/12-11:07:10.990 b803 Delete type=2 #218
+2025/06/12-11:07:10.990 b803 Delete type=0 #220
+2025/06/12-11:07:10.992 a103 Manual compaction at level-0 from '\x00I\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00J\x00\x00\x00' @ 0 : 0; will stop at '\x00I\x00\x00\x05' @ 3643 : 1
+2025/06/12-11:07:10.993 a103 Compacting 1@0 + 1@1 files
+2025/06/12-11:07:10.999 a103 Generated table #225@0: 235 keys, 5658 bytes
+2025/06/12-11:07:10.999 a103 Compacted 1@0 + 1@1 files => 5658 bytes
+2025/06/12-11:07:11.019 a103 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/06/12-11:07:11.020 a103 Delete type=2 #224
+2025/06/12-11:07:11.023 a203 Manual compaction at level-0 from '\x00I\x00\x00\x05' @ 3643 : 1 .. '\x00J\x00\x00\x00' @ 0 : 0; will stop at (end)

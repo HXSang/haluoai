@@ -828,9 +828,10 @@ export class HailuoService {
           });
           browser = null; // Set to null so we don't try to close it again in finally block
         }
-        
+
         return {
           success: false,
+          isNotLogin: true,
           message: 'User is not logged in - please login first',
         };
       }
@@ -1221,7 +1222,7 @@ export class HailuoService {
       });
 
       // Wait for page to settle
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 8000));
 
       // Get all cookies
       const cookies = await page.cookies();
