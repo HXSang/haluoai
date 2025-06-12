@@ -1,14 +1,11 @@
-2025/06/11-00:09:11.556 a403 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-6/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
-2025/06/11-00:09:11.557 a403 Recovering log #297
-2025/06/11-00:09:11.557 a403 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-6/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000297.log 
-2025/06/11-00:09:11.557 a403 Delete type=2 #295
-2025/06/11-00:09:11.661 9f03 Level-0 table #302: started
-2025/06/11-00:09:11.680 9f03 Level-0 table #302: 6765 bytes OK
-2025/06/11-00:09:11.698 9f03 Delete type=0 #297
-2025/06/11-00:09:11.704 a403 Manual compaction at level-0 from '\x00`\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00a\x00\x00\x00' @ 0 : 0; will stop at '\x00`\x00\x00\x05' @ 4604 : 1
-2025/06/11-00:09:11.704 a403 Compacting 1@0 + 1@1 files
-2025/06/11-00:09:11.709 a403 Generated table #303@0: 293 keys, 5990 bytes
-2025/06/11-00:09:11.709 a403 Compacted 1@0 + 1@1 files => 5990 bytes
-2025/06/11-00:09:11.720 a403 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/06/11-00:09:11.720 a403 Delete type=2 #302
-2025/06/11-00:09:11.721 a403 Manual compaction at level-0 from '\x00`\x00\x00\x05' @ 4604 : 1 .. '\x00a\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/12-11:41:54.294 a203 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-6/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/06/12-11:41:54.295 a203 Recovering log #3
+2025/06/12-11:41:54.295 a203 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-6/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000003.log 
+2025/06/12-11:41:54.333 b403 Level-0 table #5: started
+2025/06/12-11:41:54.343 b403 Level-0 table #5: 1317 bytes OK
+2025/06/12-11:41:54.351 b403 Delete type=0 #3
+2025/06/12-11:41:54.352 a203 Manual compaction at level-0 from '\x00\x01\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x02\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/12-11:41:55.246 9d03 Level-0 table #7: started
+2025/06/12-11:41:55.252 9d03 Level-0 table #7: 1938 bytes OK
+2025/06/12-11:41:55.270 9d03 Delete type=0 #4
+2025/06/12-11:41:55.270 9d03 Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)

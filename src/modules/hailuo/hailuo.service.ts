@@ -33,7 +33,7 @@ interface BrowserProfile {
 export class HailuoService {
   private readonly logger = new Logger(HailuoService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private async unlockChromeProfile(profilePath: string) {
     try {
@@ -75,7 +75,7 @@ export class HailuoService {
               this.logger.log(`Removed ${path.basename(file)} with sudo`);
             } catch (sudoError) {
               this.logger.error(`Failed to remove ${path.basename(file)} even with sudo:`, sudoError);
-              console.log(`Failed to remove ${path.basename(file)} even with sudo:`, sudoError);  
+              console.log(`Failed to remove ${path.basename(file)} even with sudo:`, sudoError);
             }
           } else {
             this.logger.error(`Error removing ${path.basename(file)}:`, error);
@@ -114,7 +114,7 @@ export class HailuoService {
     const currentDate = new Date().toISOString().split('T')[0];
     const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
     let browser;
-    
+
     // Unlock the profile if it's locked
     await this.unlockChromeProfile(userDataDir);
 
@@ -170,12 +170,12 @@ export class HailuoService {
         execSync(`rm -rf "${userDataDir}"`);
         console.log(`Removed entire profile directory at ${userDataDir}`);
         this.logger.log(`Removed entire profile directory at ${userDataDir}`);
-        
+
         // Recreate the directory
         fs.mkdirSync(userDataDir, { recursive: true });
         console.log(`Recreated profile directory at ${userDataDir}`);
         this.logger.log(`Recreated profile directory at ${userDataDir}`);
-        
+
         // Try launching again with the clean profile
         browser = await puppeteer.launch({
           headless: headless,
@@ -255,11 +255,11 @@ export class HailuoService {
           } catch (error) {
             retryCount++;
             console.log(`initializeBrowser: Navigation attempt ${retryCount} failed:`, error.message);
-            
+
             if (retryCount === maxRetries) {
               throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
             }
-            
+
             // Reduce wait time between retries from 5000 * retryCount to 3000 * retryCount
             const waitTime = 3000 * retryCount;
             console.log(`initializeBrowser: Waiting ${waitTime}ms before retry...`);
@@ -443,30 +443,30 @@ export class HailuoService {
       // Kiểm tra xem đã đăng nhập hay chưa
       console.log('Checking if already logged in...');
       await new Promise(resolve => setTimeout(resolve, 2000)); // Wait a bit for page to settle
-      
+
       const isAlreadyLoggedIn = await page.evaluate(() => {
         const avatarImg = document.querySelector('img[alt="hailuo video avatar png"], img[alt="AI Video avatar by Hailuo AI Video Generator"]');
         return !!avatarImg;
       });
-      
+
       console.log(`Already logged in: ${isAlreadyLoggedIn}`);
-      
+
       // Nếu đã đăng nhập rồi, lấy browser profile và trả về
       if (isAlreadyLoggedIn) {
         console.log('User is already logged in, collecting browser profile without re-login');
-        
+
         // Refresh the page to ensure we have the latest state
         await page.reload({ waitUntil: 'networkidle0' });
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        
+
         // Get a complete browser profile
         const browserProfileResult = await this.getBrowserCookie(account);
-        
+
         // Close browser before returning
         if (browser) {
-          await browser.close().catch(() => {});
+          await browser.close().catch(() => { });
         }
-        
+
         return {
           success: true,
           browserProfile: browserProfileResult.browserProfile,
@@ -567,15 +567,19 @@ export class HailuoService {
       try {
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
-        // Handle email input
-        const emailInput = await popup.waitForSelector('input[type="email"]', {
-          visible: true,
-          timeout: 10000,
-        });
-        await emailInput.click({ clickCount: 3 });
-        await emailInput.type(account.email, { delay: 100 });
-        await emailInput.press('Enter');
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        try {
+          // Handle email input
+          const emailInput = await popup.waitForSelector('input[type="email"]', {
+            visible: true,
+            timeout: 10000,
+          });
+          await emailInput.click({ clickCount: 3 });
+          await emailInput.type(account.email, { delay: 100 });
+          await emailInput.press('Enter');
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        } catch (e){
+
+        }
 
         // Handle password input
         const passwordInput = await popup.waitForSelector(
@@ -633,10 +637,10 @@ export class HailuoService {
 
       // Close browser before saving to database
       if (popup && !popup.isClosed()) {
-        await popup.close().catch(() => {});
+        await popup.close().catch(() => { });
       }
       if (browser) {
-        await browser.close().catch(() => {});
+        await browser.close().catch(() => { });
       }
 
       return {
@@ -652,8 +656,8 @@ export class HailuoService {
       if (page && !page.isClosed()) {
         try {
           const screenshotPath = `error-${Date.now()}.png`;
-          
-        this.logger.log(`Error screenshot saved to ${screenshotPath}`);
+
+          this.logger.log(`Error screenshot saved to ${screenshotPath}`);
         } catch (e) {
           // Ignore screenshot errors
         }
@@ -662,10 +666,10 @@ export class HailuoService {
       // Clean up before throwing
       try {
         if (popup && !popup.isClosed()) {
-          await popup.close().catch(() => {});
+          await popup.close().catch(() => { });
         }
         if (browser) {
-          await browser.close().catch(() => {});
+          await browser.close().catch(() => { });
         }
       } catch (e) {
         this.logger.error('Error during cleanup:', e);
@@ -712,7 +716,7 @@ export class HailuoService {
     let page;
     let videoResults = [];
     let shouldCloseBrowser = false;
-    
+
     try {
       // Use existing browser and page if provided, otherwise initialize a new one
       // This allows sharing browser instances between methods (like processJob) for better performance
@@ -780,12 +784,12 @@ export class HailuoService {
         } catch (error) {
           retryCount++;
           console.log(`Navigation attempt ${retryCount} failed:`, error.message);
-          
+
           if (retryCount === maxRetries) {
             // On final attempt failure, mark cookie as inactive and throw
             throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
           }
-          
+
           // Reduce wait time between retries from 5000 * retryCount to 3000 * retryCount
           const waitTime = 3000 * retryCount;
           console.log(`Waiting ${waitTime}ms before retry...`);
@@ -809,18 +813,18 @@ export class HailuoService {
 
       if (!isLoggedIn) {
         console.log('User is not logged in');
-        
+
         // Take a screenshot when login error is detected
         try {
           const screenshotPath = `login-error-${Date.now()}.png`;
-          
+
           console.log(`Login error screenshot saved to ${screenshotPath}`);
           this.logger.log(`Login error screenshot saved to ${screenshotPath}`);
         } catch (screenshotError) {
           console.error('Failed to take login error screenshot:', screenshotError);
           this.logger.error('Failed to take login error screenshot:', screenshotError);
         }
-        
+
         // Close browser properly before updating account status, but only if we created it
         if (browser && shouldCloseBrowser) {
           await browser.close().catch(e => {
@@ -891,19 +895,19 @@ export class HailuoService {
     } catch (error) {
       // Handle errors during browser operations
       console.error('Inner operation error:', error.message);
-      
+
       // Take a screenshot if possible
       if (page && !page.isClosed()) {
         try {
           const screenshotPath = `getvideos-inner-error-${Date.now()}.png`;
-          
+
           console.log(`Error screenshot saved to ${screenshotPath}`);
           this.logger.log(`Error screenshot saved to ${screenshotPath}`);
         } catch (screenshotError) {
           console.error('Failed to take error screenshot:', screenshotError);
         }
       }
-      
+
       // Close browser gracefully, but only if we created it
       if (browser && shouldCloseBrowser) {
         await browser.close().catch(e => {
@@ -911,7 +915,7 @@ export class HailuoService {
         });
         browser = null; // Set to null so we don't try to close it again in finally block
       }
-      
+
       // Re-throw the error
       this.logger.error('Error getting videos list:', error);
       throw new Error(`Failed to get videos list: ${error.message}`);
@@ -936,7 +940,7 @@ export class HailuoService {
 
     try {
       console.log(`[ProcessJob] Starting for account ${account.email}`);
-      
+
       // First initialize the browser for both operations to avoid multiple browser instances
       // This improves performance by reusing the same browser instance for checking video count and creating new videos
       console.log('[ProcessJob] Initializing browser...');
@@ -957,10 +961,10 @@ export class HailuoService {
       }
       const generatingVideos = videosListResponse.data.filter(video => !video.videoUrl);
       console.log(`[ProcessJob] Found ${generatingVideos.length} videos currently being generated`);
-      
+
       if (generatingVideos.length >= 5) {
         console.log(`[ProcessJob] Generation limit reached: ${generatingVideos.length} videos in progress`);
-        
+
         // Close browser before throwing error
         if (browser) {
           await browser.close().catch(e => {
@@ -968,7 +972,7 @@ export class HailuoService {
           });
           browser = null;
         }
-        
+
         return {
           success: false,
           isError: false,
@@ -997,12 +1001,12 @@ export class HailuoService {
           } catch (error) {
             retryCount++;
             console.log(`[ProcessJob] Navigation attempt ${retryCount} failed:`, error.message);
-            
+
             if (retryCount === maxRetries) {
               console.log('[ProcessJob] Maximum navigation retries reached');
               throw new Error(`Failed to load page after ${maxRetries} attempts: ${error.message}`);
             }
-            
+
             // Reduce wait time between retries from 5000 * retryCount to 3000 * retryCount
             const waitTime = 3000 * retryCount;
             console.log(`[ProcessJob] Waiting ${waitTime}ms before retry...`);
@@ -1022,7 +1026,7 @@ export class HailuoService {
 
         // Download the image from URL and save it temporarily
         console.log('[ProcessJob] Downloading image...');
-        const tempFilePath = await downloadImage(imageUrl); 
+        const tempFilePath = await downloadImage(imageUrl);
         console.log('[ProcessJob] Image downloaded');
 
         // Upload the file
@@ -1073,10 +1077,10 @@ export class HailuoService {
         const generateInput = await page.waitForSelector('.ant-input-number input.ant-input-number-input');
         await generateInput.click({ clickCount: 3 });
         await generateInput.type(generateTimes.toString());
-        
+
         // Wait a bit for the system to adjust the value
         await new Promise(resolve => setTimeout(resolve, 5000));
-        
+
         // Get the actual value after system adjustment
         const actualGenerateTimes = await page.evaluate(() => {
           const input = document.querySelector('.ant-input-number input.ant-input-number-input') as HTMLInputElement;
@@ -1112,18 +1116,18 @@ export class HailuoService {
       } catch (innerError) {
         // Handle errors during browser operations
         console.error('[ProcessJob] Inner operation error:', innerError.message);
-        
+
         // Take a screenshot if possible
         if (page && !page.isClosed()) {
           try {
             const screenshotPath = `processjob-error-${Date.now()}.png`;
-            
+
             console.log(`[ProcessJob] Error screenshot saved to ${screenshotPath}`);
           } catch (screenshotError) {
             console.error('[ProcessJob] Failed to take error screenshot:', screenshotError);
           }
         }
-        
+
         // Close browser gracefully
         if (browser) {
           await browser.close().catch(e => {
@@ -1170,10 +1174,10 @@ export class HailuoService {
 
     try {
       this.logger.log(`Getting browser cookies for account ${account.email}`);
-      
+
       // Initialize browser with the account's profile
       const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
-      
+
       // Launch browser with userDataDir to maintain profile
       browser = await puppeteer.launch({
         headless: process.env.APP_URL?.includes('localhost') ? false : true,
@@ -1207,14 +1211,14 @@ export class HailuoService {
         devtools: true,
         userDataDir,
       });
-      
+
       // Open a new page
       page = await browser.newPage();
-      
+
       // Set default timeouts
       page.setDefaultNavigationTimeout(45000);
       page.setDefaultTimeout(45000);
-      
+
       // Navigate to create page to ensure profile is loaded
       await page.goto('https://hailuoai.video/create', {
         waitUntil: ['domcontentloaded'],
@@ -1308,7 +1312,7 @@ export class HailuoService {
       }
     }
   }
-  
+
   /**
    * Test login functionality using only cookies without browser cache
    * @param account Account with cookies to test
@@ -1317,17 +1321,17 @@ export class HailuoService {
   async testLoginWithCookiesOnly(account: Account) {
     let browser;
     let page;
-    
+
     try {
       this.logger.log(`Testing login with browser profile for account ${account.email}`);
-      
+
       if (!account.browserProfile) {
         throw new Error('No browser profile available for this account');
       }
 
       // Parse browser profile
       const browserProfile: BrowserProfile = JSON.parse(account.browserProfile);
-      
+
       // Launch browser with userDataDir to maintain profile
       const userDataDir = path.join(process.cwd(), `browser-data-${account.id}`);
       browser = await puppeteer.launch({
@@ -1365,17 +1369,17 @@ export class HailuoService {
         devtools: true,
         userDataDir, // Use the same profile directory
       });
-      
+
       // Open a new page
       page = await browser.newPage();
-      
+
       // Set browser fingerprint
       await page.setUserAgent(browserProfile.browserFingerprint.userAgent);
-      
+
       // Set default timeouts
       page.setDefaultNavigationTimeout(45000);
       page.setDefaultTimeout(45000);
-      
+
       // Navigate to create page first to set up the page context
       await page.goto('https://hailuoai.video/create', {
         waitUntil: ['domcontentloaded', 'networkidle0'],
@@ -1461,27 +1465,27 @@ export class HailuoService {
       } catch (cacheStorageError) {
         this.logger.error(`Failed to restore Cache Storage: ${cacheStorageError.message}`);
       }
-      
+
       // Take screenshot of initial state
       const initialScreenshotPath = `cookie-test-initial-${Date.now()}.png`;
       this.logger.log(`Initial state screenshot saved to ${initialScreenshotPath}`);
-      
+
       // Wait for content to load
       await new Promise(resolve => setTimeout(resolve, 6000));
-      
+
       // Check if user is logged in by looking for avatar
       const isLoggedIn = await page.evaluate(() => {
         const avatarImg = document.querySelector('img[alt="hailuo video avatar png"], img[alt="AI Video avatar by Hailuo AI Video Generator"]');
         return !!avatarImg;
       });
-      
+
       // Take screenshot after login check
       const finalScreenshotPath = `cookie-test-result-${Date.now()}.png`;
       this.logger.log(`Final state screenshot saved to ${finalScreenshotPath}`);
-      
+
       // Get page HTML for further analysis if needed
       const pageContent = await page.content();
-      
+
       return {
         success: true,
         isLoggedIn,
@@ -1492,13 +1496,13 @@ export class HailuoService {
       };
     } catch (error) {
       this.logger.error(`Error testing login with browser profile for ${account.email}:`, error);
-      
+
       // Take screenshot if possible
       if (page && !page.isClosed()) {
         try {
           const errorScreenshotPath = `cookie-test-error-${Date.now()}.png`;
           this.logger.log(`Error screenshot saved to ${errorScreenshotPath}`);
-          
+
           return {
             success: false,
             isLoggedIn: false,
@@ -1509,7 +1513,7 @@ export class HailuoService {
           // Ignore screenshot errors
         }
       }
-      
+
       return {
         success: false,
         isLoggedIn: false,
@@ -1529,7 +1533,7 @@ export class HailuoService {
     // get all folder start with browser-data-${accountId}-
     const userDataDir = path.join(process.cwd(), `browser-data-${accountId}-`);
     const folders = fs.readdirSync(userDataDir);
-    
+
     // find found created 1 day ago
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const foldersToRemove = folders.filter(folder => {
@@ -1549,7 +1553,7 @@ export class HailuoService {
     try {
       const userDataDir = path.join(process.cwd(), `browser-data-${accountId}`);
       this.logger.log(`Attempting to clear browser data for account ${accountId} at ${userDataDir}`);
-      
+
       if (!fs.existsSync(userDataDir)) {
         this.logger.log(`No browser data directory found at ${userDataDir}`);
         return {
@@ -1557,15 +1561,15 @@ export class HailuoService {
           message: 'No browser data directory found to clear'
         };
       }
-      
+
       // Note: We no longer kill Chrome processes as that is managed by JobQueueProcessor
       // JobQueueProcessor's accountRunningStatus prevents multiple jobs from accessing the same account
-      
+
       // Remove the entire profile directory
       const { execSync } = require('child_process');
       execSync(`rm -rf "${userDataDir}"`);
       this.logger.log(`Removed browser data directory at ${userDataDir}`);
-      
+
       return {
         success: true,
         message: `Successfully cleared browser data for account ${accountId}`
