@@ -1228,6 +1228,13 @@ export class HailuoService {
       // Wait for page to settle
       await new Promise(resolve => setTimeout(resolve, 8000));
 
+      // Kiểm tra người dùng đã đăng nhập hay chưa
+      const isLoggedIn = await page.evaluate(() => {
+        const avatarImg = document.querySelector('img[alt="hailuo video avatar png"], img[alt="AI Video avatar by Hailuo AI Video Generator"]');
+        return !!avatarImg;
+      });
+      this.logger.log(`Login status for account ${account.email}: ${isLoggedIn ? 'Logged in' : 'Not logged in'}`);
+
       // Get all cookies
       const cookies = await page.cookies();
       this.logger.log(`Retrieved ${cookies.length} cookies for account ${account.email}`);
@@ -1295,6 +1302,7 @@ export class HailuoService {
       return {
         success: true,
         browserProfile: JSON.stringify(browserProfile),
+        isLoggedIn,
         message: 'Successfully retrieved browser profile'
       };
     } catch (error) {
@@ -1302,6 +1310,7 @@ export class HailuoService {
       return {
         success: false,
         browserProfile: null,
+        isLoggedIn: false,
         message: `Failed to get browser profile: ${error.message}`
       };
     } finally {

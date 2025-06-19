@@ -1,14 +1,7 @@
-2025/06/12-11:05:47.651 a403 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-5/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
-2025/06/12-11:05:47.652 a403 Recovering log #102
-2025/06/12-11:05:47.652 a403 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-5/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000102.log 
-2025/06/12-11:05:47.652 a403 Delete type=2 #100
-2025/06/12-11:05:47.747 a403 Level-0 table #107: started
-2025/06/12-11:05:47.782 a403 Level-0 table #107: 1825 bytes OK
-2025/06/12-11:05:47.835 a403 Delete type=0 #102
-2025/06/12-11:05:47.838 b403 Manual compaction at level-0 from '\x00(\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00)\x00\x00\x00' @ 0 : 0; will stop at '\x00(\x00\x00\x05' @ 1437 : 1
-2025/06/12-11:05:47.838 b403 Compacting 1@0 + 1@1 files
-2025/06/12-11:05:47.857 b403 Generated table #108@0: 86 keys, 1809 bytes
-2025/06/12-11:05:47.858 b403 Compacted 1@0 + 1@1 files => 1809 bytes
-2025/06/12-11:05:47.875 b403 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/06/12-11:05:47.875 b403 Delete type=2 #107
-2025/06/12-11:05:47.882 a403 Manual compaction at level-0 from '\x00(\x00\x00\x05' @ 1437 : 1 .. '\x00)\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/19-12:20:44.516 a503 Reusing MANIFEST /Users/hoangcuong/Downloads/hailuoai-main/browser-data-5/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/06/19-12:20:44.517 a503 Delete type=0 #12
+2025/06/19-12:20:44.517 a503 Delete type=2 #112
+2025/06/19-12:20:44.524 b303 Level-0 table #119: started
+2025/06/19-12:20:44.528 b303 Level-0 table #119: 275 bytes OK
+2025/06/19-12:20:44.533 b303 Delete type=0 #117
+2025/06/19-12:20:44.534 a503 Manual compaction at level-0 from '\x00*\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00+\x00\x00\x00' @ 0 : 0; will stop at (end)

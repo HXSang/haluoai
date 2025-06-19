@@ -1,25 +1,3 @@
-2025/06/12-11:06:00.782 a603 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-5/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
-2025/06/12-11:06:00.782 a603 Recovering log #106
-2025/06/12-11:06:00.783 a603 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-5/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000106.log 
-2025/06/12-11:06:00.784 a603 Delete type=2 #104
-2025/06/12-11:06:00.926 8b03 Level-0 table #111: started
-2025/06/12-11:06:00.962 8b03 Level-0 table #111: 1896 bytes OK
-2025/06/12-11:06:00.980 8b03 Delete type=0 #106
-2025/06/12-11:06:00.981 a603 Manual compaction at level-0 from '\x00)\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00*\x00\x00\x00' @ 0 : 0; will stop at '\x00)\x00\x00\x05' @ 1482 : 1
-2025/06/12-11:06:00.981 a603 Compacting 1@0 + 1@1 files
-2025/06/12-11:06:01.056 a603 Generated table #112@0: 90 keys, 1798 bytes
-2025/06/12-11:06:01.056 a603 Compacted 1@0 + 1@1 files => 1798 bytes
-2025/06/12-11:06:01.073 a603 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/06/12-11:06:01.073 a603 Delete type=2 #111
-2025/06/12-11:06:01.076 a603 Manual compaction at level-0 from '\x00)\x00\x00\x05' @ 1482 : 1 .. '\x00*\x00\x00\x00' @ 0 : 0; will stop at (end)
-2025/06/12-11:07:23.815 a603 Level-0 table #114: started
-2025/06/12-11:07:23.822 a603 Level-0 table #114: 4493 bytes OK
-2025/06/12-11:07:23.830 a603 Delete type=0 #110
-2025/06/12-11:07:23.831 a603 Delete type=2 #108
-2025/06/12-11:07:23.836 8b03 Manual compaction at level-0 from '\x00*\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00+\x00\x00\x00' @ 0 : 0; will stop at '\x00*\x00\x00\x05' @ 1539 : 1
-2025/06/12-11:07:23.837 8b03 Compacting 1@0 + 1@1 files
-2025/06/12-11:07:23.841 8b03 Generated table #115@0: 107 keys, 4517 bytes
-2025/06/12-11:07:23.841 8b03 Compacted 1@0 + 1@1 files => 4517 bytes
-2025/06/12-11:07:23.851 8b03 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/06/12-11:07:23.851 8b03 Delete type=2 #114
-2025/06/12-11:07:23.854 a603 Manual compaction at level-0 from '\x00*\x00\x00\x05' @ 1539 : 1 .. '\x00+\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/19-12:26:28.931 a203 Reusing MANIFEST /Users/hoangcuong/Downloads/hailuoai-main/browser-data-5/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/06/19-12:26:28.933 a203 Recovering log #118
+2025/06/19-12:26:28.934 a203 Reusing old log /Users/hoangcuong/Downloads/hailuoai-main/browser-data-5/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000118.log 

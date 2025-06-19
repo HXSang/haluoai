@@ -1,11 +1,16 @@
-2025/06/12-11:41:54.294 a203 Reusing MANIFEST /Volumes/Untitled/code/eduto/hailuoai/browser-data-6/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
-2025/06/12-11:41:54.295 a203 Recovering log #3
-2025/06/12-11:41:54.295 a203 Reusing old log /Volumes/Untitled/code/eduto/hailuoai/browser-data-6/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000003.log 
-2025/06/12-11:41:54.333 b403 Level-0 table #5: started
-2025/06/12-11:41:54.343 b403 Level-0 table #5: 1317 bytes OK
-2025/06/12-11:41:54.351 b403 Delete type=0 #3
-2025/06/12-11:41:54.352 a203 Manual compaction at level-0 from '\x00\x01\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x02\x00\x00\x00' @ 0 : 0; will stop at (end)
-2025/06/12-11:41:55.246 9d03 Level-0 table #7: started
-2025/06/12-11:41:55.252 9d03 Level-0 table #7: 1938 bytes OK
-2025/06/12-11:41:55.270 9d03 Delete type=0 #4
-2025/06/12-11:41:55.270 9d03 Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/19-12:38:02.132 a203 Reusing MANIFEST /Users/hoangcuong/Downloads/hailuoai-main/browser-data-6/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/MANIFEST-000001
+2025/06/19-12:38:02.140 a203 Recovering log #18
+2025/06/19-12:38:02.143 a203 Reusing old log /Users/hoangcuong/Downloads/hailuoai-main/browser-data-6/Default/IndexedDB/https_hailuoai.video_0.indexeddb.leveldb/000018.log 
+2025/06/19-12:38:02.144 a203 Delete type=2 #11
+2025/06/19-12:38:02.179 9d03 Level-0 table #23: started
+2025/06/19-12:38:02.190 9d03 Level-0 table #23: 2520 bytes OK
+2025/06/19-12:38:02.192 9d03 Delete type=0 #18
+2025/06/19-12:38:02.194 a303 Manual compaction at level-0 from '\x00\x09\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x0a\x00\x00\x00' @ 0 : 0; will stop at '\x00\x09\x00\x00\x05' @ 425 : 1
+2025/06/19-12:38:02.194 a303 Compacting 1@0 + 1@1 files
+2025/06/19-12:38:02.196 a303 Generated table #24@0: 92 keys, 1803 bytes
+2025/06/19-12:38:02.196 a303 Compacted 1@0 + 1@1 files => 1803 bytes
+2025/06/19-12:38:02.199 a303 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/06/19-12:38:02.199 a303 Delete type=2 #23
+2025/06/19-12:38:02.205 a303 Manual compaction at level-0 from '\x00\x09\x00\x00\x05' @ 425 : 1 .. '\x00\x0a\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/19-12:38:06.576 9d03 Manual compaction at level-0 from '\x00\x0a\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x0b\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/19-12:38:18.509 9d03 Manual compaction at level-0 from '\x00\x0b\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x0c\x00\x00\x00' @ 0 : 0; will stop at (end)
